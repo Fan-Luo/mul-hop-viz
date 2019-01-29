@@ -1,0 +1,32 @@
+{% block content %}
+
+<h1> Visualization for Multi-hop Reasoning </h1>
+<!-- <table border=1>
+  <tbody>
+    <tr>
+    {% for info in user_dict %}
+      <td>{{ info }}</td>
+    {% endfor %}
+    </tr>
+  </tbody>
+</table>
+ -->
+
+<form action="/data">
+  Number of facts:<br>
+  <input type="int" name="text">
+  <br>
+
+  <input type="submit" value="Submit">
+</form> 
+
+<script type="text/javascript">
+	var text = {{ text|safe }};
+	// console.log(text);
+	for(var i=0; i<text.length;i++){
+		console.log(text[i]);
+	}
+</script>
+
+
+{% endblock %}
