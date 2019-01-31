@@ -9,8 +9,7 @@ def user():
   # title = 'Visualization for Multi-hop Reasoning'
   user_dict = {'first': 'Robert', 'last': 'Chang', 'twitter_handle': '@_rchang'}
   return render_template("user.html", user_dict = user_dict.values())
-	# return render_template("user.html")
-
+  
 @app.route("/data")
 
 def data():

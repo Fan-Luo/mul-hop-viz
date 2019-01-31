@@ -1,16 +1,7 @@
 {% block content %}
 
 <h1> Visualization for Multi-hop Reasoning </h1>
-<!-- <table border=1>
-  <tbody>
-    <tr>
-    {% for info in user_dict %}
-      <td>{{ info }}</td>
-    {% endfor %}
-    </tr>
-  </tbody>
-</table>
- -->
+
 
 <form action="/data">
   Number of facts:<br>
@@ -28,5 +19,107 @@
 	}
 </script>
 
+
+<script type="text/javascript" src="{{ url_for('static', filename='tsne.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='jquery-1.8.3.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='d3.min.js') }}"></script>
+<script>
+
+  var opt = {epsilon: 10, perplexity: 30, dim: 5};
+  var T = new tsnejs.tSNE(opt); // create a tSNE instance
+
+  var Y;
+
+  var data = [];
+
+  function updateEmbedding() {
+    var Y = T.getSolution();
+    svg.selectAll('.u')
+      .data(data.facts)
+      .attr("transform", function(d, i) { return "translate(" +
+                                            ((Y[i][0]*20*ss + tx) + 400) + "," +
+                                            ((Y[i][1]*20*ss + ty) + 300) + ")"; });
+  }
+
+  var svg;
+  function drawEmbedding() {
+      $("#embed").empty();
+      var div = d3.select("#embed");
+
+      // get min and max in each column of Y
+      var Y = T.Y;
+      
+      svg = div.append("svg") // svg is global
+      .attr("width", 800)
+      .attr("height", 600);
+
+      var g = svg.selectAll(".b")
+        .data(data.facts)
+        .enter().append("g")
+        .attr("class", "u");
+      
+      // g.append("svg:image")
+      //   .attr('x', 0)
+      //   .attr('y', 2)
+      //   .attr('width', 24)
+      //   .attr('height', 24)
+      //   .attr("xlink:href", function(d) { return "scrape/imgs/" + d.substring(1); })
+
+      g.append("text")
+        .attr("text-anchor", "top")
+        .attr("font-size", 12)
+        .attr("fill", "#333")
+        .text(function(d) { return d; });
+
+      var zoomListener = d3.behavior.zoom()
+        .scaleExtent([0.1, 10])
+        .center([0,0])
+        .on("zoom", zoomHandler);
+      zoomListener(svg);
+  }
+
+  var tx=0, ty=0;
+  var ss=1;
+  function zoomHandler() {
+    tx = d3.event.translate[0];
+    ty = d3.event.translate[1];
+    ss = d3.event.scale;
+  }
+
+  function step() {
+    for(var k=0;k<1;k++) {
+      T.step(); // do a few steps
+    }
+    updateEmbedding();
+  }
+
+  $(window).load(function() {
+
+    $.getJSON( "static/knowledge_fact_fan_100.json", function( j ) {
+      data = j;
+      T.initDataRaw(data.mat); // init embedding
+      drawEmbedding(); // draw initial embedding
+
+      //T.debugGrad();
+      setInterval(step, 0);
+      //step();
+
+    });
+   
+  //   data = {
+  // "facts": ["- 2+2=0", "1 day has 1440 minutes", "1 out of 4 people in the world are chronically hungry .", "100 degrees celsius is the boiling point of water", "12 : 00 PM is noon"],
+  // "mat": [[0.12, 0.5, 1.2, 3.4, 4.6], [0.144, 31.0, 5.3, 4.6, 4.1], [0.23, 1.1, 10.0, 23.1, 1.9], [0.12, 0.5, 1.2, 3.4, 4], [0.23, 1.1, 9.0, 23.1, 1.9]]
+  //   };
+
+
+
+  });
+
+</script>
+
+<div id="embed">
+  <svg width="800" height="600">
+  </svg>
+</div>
 
 {% endblock %}
