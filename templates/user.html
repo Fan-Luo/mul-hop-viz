@@ -12,11 +12,11 @@
 </form> 
 
 <script type="text/javascript">
-	var text = {{ text|safe }};
-	// console.log(text);
-	for(var i=0; i<text.length;i++){
-		console.log(text[i]);
-	}
+  var text = {{ text|safe }};
+  // console.log(text);
+  for(var i=0; i<text.length;i++){
+    console.log(text[i]);
+  }
 </script>
 
 
@@ -86,23 +86,29 @@
     ss = d3.event.scale;
   }
 
+  var k = 0;
+  var myCount;
   function step() {
-    for(var k=0;k<1;k++) {
-      T.step(); // do a few steps
+    if(k==500) {
+      clearInterval(myCount);
     }
-    updateEmbedding();
+    else{
+      T.step(); // do a few steps
+      updateEmbedding();
+      k++;
+    }
   }
 
   $(window).load(function() {
 
-    $.getJSON( "static/knowledge_fact_fan_100.json", function( j ) {
+    $.getJSON( "static/knowledge_fact_fan_49.json", function( j ) {
       data = j;
       T.initDataRaw(data.mat); // init embedding
       drawEmbedding(); // draw initial embedding
 
       //T.debugGrad();
-      setInterval(step, 0);
-      //step();
+      myCount = setInterval(step, 0);
+      // step();
 
     });
    
