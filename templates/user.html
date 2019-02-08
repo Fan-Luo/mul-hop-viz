@@ -31,6 +31,7 @@
   var Y;
 
   var data = [];
+  var svg;
 
   function updateEmbedding() {
     var Y = T.getSolution();
@@ -39,9 +40,10 @@
       .attr("transform", function(d, i) { return "translate(" +
                                             ((Y[i][0]*20*ss + tx) + 400) + "," +
                                             ((Y[i][1]*20*ss + ty) + 300) + ")"; });
+    
   }
 
-  var svg;
+  
   function drawEmbedding() {
       $("#embed").empty();
       var div = d3.select("#embed");
@@ -109,17 +111,21 @@
       //T.debugGrad();
       myCount = setInterval(step, 0);
       // step();
+      svg.selectAll(".u").on("click", function(d, i) 
+        {
+          console.log(d);
+        });
 
     });
-   
+    
+
   //   data = {
   // "facts": ["- 2+2=0", "1 day has 1440 minutes", "1 out of 4 people in the world are chronically hungry .", "100 degrees celsius is the boiling point of water", "12 : 00 PM is noon"],
   // "mat": [[0.12, 0.5, 1.2, 3.4, 4.6], [0.144, 31.0, 5.3, 4.6, 4.1], [0.23, 1.1, 10.0, 23.1, 1.9], [0.12, 0.5, 1.2, 3.4, 4], [0.23, 1.1, 9.0, 23.1, 1.9]]
   //   };
 
-
-
   });
+  
 
 </script>
 
