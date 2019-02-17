@@ -2,7 +2,7 @@
 
 <h1> Visualization for Multi-hop Reasoning </h1>
 
-
+<!-- 
 <form action="/data">
   Number of facts:<br>
   <input type="int" name="text">
@@ -19,38 +19,24 @@
   }
 </script>
 
-
+ -->
 <script type="text/javascript" src="{{ url_for('static', filename='tsne.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.8.3.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='d3.min.js') }}"></script>
-<script>
+<script type="text/javascript">
 
-  var opt = {epsilon: 10, perplexity: 30, dim: 5};
-  var T = new tsnejs.tSNE(opt); // create a tSNE instance
-
-  var Y;
-
+  var X_embedded = {{ X_embedded }};
+  
   var data = [];
   var svg;
-
-  function updateEmbedding() {
-    var Y = T.getSolution();
-    svg.selectAll('.u')
-      .data(data.facts)
-      .attr("transform", function(d, i) { return "translate(" +
-                                            ((Y[i][0]*20*ss + tx) + 400) + "," +
-                                            ((Y[i][1]*20*ss + ty) + 300) + ")"; });
-    
-  }
-
   
   function drawEmbedding() {
       $("#embed").empty();
       var div = d3.select("#embed");
 
       // get min and max in each column of Y
-      var Y = T.Y;
-      
+      // var Y = T.Y;
+
       svg = div.append("svg") // svg is global
       .attr("width", 800)
       .attr("height", 600);
@@ -85,32 +71,20 @@
   function zoomHandler() {
     tx = d3.event.translate[0];
     ty = d3.event.translate[1];
-    ss = d3.event.scale;
-  }
-
-  var k = 0;
-  var myCount;
-  function step() {
-    if(k==500) {
-      clearInterval(myCount);
-    }
-    else{
-      T.step(); // do a few steps
-      updateEmbedding();
-      k++;
-    }
+    ss = d3.event.scale * 20;
+    svg.selectAll('.u')
+      .data(data.facts)
+      .attr("transform", function(d, i) { return "translate(" +
+                                            ((X_embedded[i][0]*ss + tx) + 400) + "," +
+                                            ((X_embedded[i][1]*ss + ty) + 300) + ")"; });
+    
   }
 
   $(window).load(function() {
 
     $.getJSON( "static/knowledge_fact_fan_49.json", function( j ) {
       data = j;
-      T.initDataRaw(data.mat); // init embedding
       drawEmbedding(); // draw initial embedding
-
-      //T.debugGrad();
-      myCount = setInterval(step, 0);
-      // step();
       svg.selectAll(".u").on("click", function(d, i) 
         {
           console.log(d);
