@@ -26,7 +26,7 @@
 <script type="text/javascript">
 
   var X_embedded = {{ X_embedded }};
-  
+
   var data = [];
   var svg;
   
@@ -45,7 +45,11 @@
         .data(data.facts)
         .enter().append("g")
         .attr("class", "u");
-      
+      svg.selectAll('.u')
+      .data(data.facts)
+      .attr("transform", function(d, i) { return "translate(" +
+                                            ((X_embedded[i][0] + tx) + 400) + "," +
+                                            ((X_embedded[i][1] + ty) + 300) + ")"; });
       // g.append("svg:image")
       //   .attr('x', 0)
       //   .attr('y', 2)
