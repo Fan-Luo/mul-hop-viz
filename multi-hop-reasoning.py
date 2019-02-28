@@ -22,4 +22,8 @@ def tsne():
     return render_template("user.html", X_embedded = X_embedded.tolist())
     #return render_template("user.html", X_embedded = np.array2string(X_embedded, separator=', '))
 
+@app.route("/selection")
+def selection():
+    return render_template("selection.html")
+
  

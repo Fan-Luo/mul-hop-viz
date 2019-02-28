@@ -1,0 +1,146 @@
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>Viz for Multi-hop Reasoning</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="../static/lou-multi-select-57fb8d3/css/multi-select.css">
+</head>
+<body>
+
+  <h1> Visualization for Multi-hop Reasoning </h1> 
+
+  <h3> Question: </h3> 
+  <div id="Question">
+ 
+  </div>
+ 
+  <h3> Candidate Answer: </h3> 
+  <div id="Candidate Answer">
+  </div>
+
+  <p> 
+  </p>
+
+  <select id="sentences" multiple="multiple" name="sentences[]">
+<!--     <option value='s1'>elem 1</option>
+    <option value='s2'>elem 2</option>
+    <option value='s3'>elem 3</option>
+ -->
+  </select>
+
+  <a href='#' id='select-all'>select all</a><br>
+  <a href='#' id='deselect-all'>deselect all</a><br>
+  <a href='#' id='select-10'>select 10</a><br>
+  <a href='#' id='deselect-10'>deselect 10</a><br>
+<!--   <a href='#' id='add-option'>add ele</a><br> -->
+
+  <!-- <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.8.3.min.js') }}"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='d3.min.js') }}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='jquery.quicksearch.js') }}"></script>
+  <script type="text/javascript" src='../static/lou-multi-select-57fb8d3/js/jquery.multi-select.js'></script>
+  <script type="text/javascript">
+
+  $(document).ready(function() {
+    $.getJSON( "static/fan_sample.json", function( j ) {
+        que_cand_facts = j;
+        document.getElementById("Question").textContent = que_cand_facts['question text']
+        document.getElementById("Candidate Answer").textContent = que_cand_facts['candidate text']
+     
+        var optionsAsString = "";
+        var num_facts = que_cand_facts['fact text'].length
+
+        for(var i = 0; i < num_facts; i++) { 
+            //Read options reversely, since the facts are ranked in descending order by lucene score
+            optionsAsString += "<option value=\'s" + i + "\'>" + que_cand_facts['fact text'][num_facts-1-i] + "</option>";
+        }
+        $( 'select[id="sentences"]' ).append( optionsAsString );
+
+        $('#sentences').multiSelect({
+          selectableHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selectable supporting facts</div> <input type='text' class='search-input' autocomplete='off' placeholder='search'>",
+          selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div> <input type='text' class='search-input' autocomplete='off' placeholder='search'>",
+
+          afterInit: function(ms){
+            var that = this,
+                $selectableSearch = that.$selectableUl.prev(),
+                $selectionSearch = that.$selectionUl.prev(),
+                selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)',
+                selectionSearchString = '#'+that.$container.attr('id')+' .ms-elem-selection.ms-selected';
+
+            that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
+            .on('keydown', function(e){
+              if (e.which === 40){
+                that.$selectableUl.focus();
+                return false;
+              }
+            });
+
+            that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
+            .on('keydown', function(e){
+              if (e.which == 40){
+                that.$selectionUl.focus();
+                return false;
+              }
+            });
+          },
+          afterSelect: function(){
+            this.qs1.cache();
+            this.qs2.cache();
+          },
+          afterDeselect: function(){
+            this.qs1.cache();
+            this.qs2.cache();
+          }
+        });
+
+
+
+      });
+  });
+
+
+
+  
+  $('#select-all').click(function(){
+    $('#sentences').multiSelect('select_all');
+    return false;
+  });
+  $('#deselect-all').click(function(){
+    $('#sentences').multiSelect('deselect_all');
+    return false;
+  });
+  $('#select-10').click(function(){
+    $('#sentences').multiSelect('select', ['s1', 's2', 's3' , 's4' , 's5', 's6', 's7', 's8' , 's9' , 's10']);
+    return false;
+  });
+  $('#deselect-10').click(function(){
+    $('#sentences').multiSelect('deselect', ['s1', 's2', 's3' , 's4' , 's5', 's6', 's7', 's8' , 's9' , 's10']);
+    return false;
+  });
+  // $('#refresh').on('click', function(){
+  //   $('#sentences').multiSelect('refresh');
+  //   return false;
+  // });
+  // $('#add-option').on('click', function(){
+  //   $('#sentences').multiSelect('addOption', { value: 42, text: 'test 42', index: 0 });
+  //   return false;
+  // });
+     
+
+  </script>
+
+ 
+
+<!--   <div id="embed">
+    <svg width="800" height="600">
+    </svg>
+  </div> -->
+
+</body>
+
+</html>
