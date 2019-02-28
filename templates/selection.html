@@ -4,6 +4,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="">
   <meta name="author" content="">
+  
+  <style>
+    .bottom-one 
+      { margin-bottom: 1cm; }
+    .left-sapce 
+      { margin-left: 15px; }
+  </style>
+
   <title>Viz for Multi-hop Reasoning</title>
   <!-- Bootstrap CSS -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -14,16 +22,12 @@
   <h1> Visualization for Multi-hop Reasoning </h1> 
 
   <h3> Question: </h3> 
-  <div id="Question">
- 
-  </div>
- 
-  <h3> Candidate Answer: </h3> 
-  <div id="Candidate Answer">
-  </div>
+  <div id="Question"> </div>
 
-  <p> 
-  </p>
+  <h3> Candidate Answer: </h3> 
+  <div id="Candidate Answer" class="bottom-one"> </div>
+
+  
 
   <select id="sentences" multiple="multiple" name="sentences[]">
 <!--     <option value='s1'>elem 1</option>
@@ -32,18 +36,17 @@
  -->
   </select>
 
-  <a href='#' id='select-all'>select all</a><br>
-  <a href='#' id='deselect-all'>deselect all</a><br>
-  <a href='#' id='select-10'>select 10</a><br>
-  <a href='#' id='deselect-10'>deselect 10</a><br>
+  <a href='#' id='select-all' class="left-sapce">select all</a> 
+  <a href='#' id='deselect-all' class="left-sapce">deselect all</a> 
+  <a href='#' id='select-10' class="left-sapce">select 10</a> 
+  <a href='#' id='deselect-10' class="left-sapce">deselect 10</a><br>
 <!--   <a href='#' id='add-option'>add ele</a><br> -->
 
-  <!-- <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.8.3.min.js') }}"></script> -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='d3.min.js') }}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.1/d3.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="{{ url_for('static', filename='jquery.quicksearch.js') }}"></script>
-  <script type="text/javascript" src='../static/lou-multi-select-57fb8d3/js/jquery.multi-select.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.quicksearch/2.3.1/jquery.quicksearch.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/js/jquery.multi-select.js'></script>
   <script type="text/javascript">
 
   $(document).ready(function() {
