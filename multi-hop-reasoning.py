@@ -27,3 +27,6 @@ def selection():
     return render_template("selection.html")
 
  
+if (__name__ == '__main__'):
+    app.run(debug = True)
+	

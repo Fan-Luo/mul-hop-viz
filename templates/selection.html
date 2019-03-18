@@ -7,7 +7,7 @@
   
   <style>
     .bottom-one 
-      { margin-bottom: 1cm; }
+      { margin-bottom: 2cm; }
     .left-sapce 
       { margin-left: 15px; }
   </style>
@@ -15,7 +15,7 @@
   <title>Viz for Multi-hop Reasoning</title>
   <!-- Bootstrap CSS -->
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-  <link rel="stylesheet" type="text/css" href="../static/lou-multi-select-57fb8d3/css/multi-select.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/css/multi-select.css">
 </head>
 <body>
 
@@ -50,7 +50,9 @@
   <script type="text/javascript">
 
   $(document).ready(function() {
+
     $.getJSON( "static/fan_sample.json", function( j ) {
+
         que_cand_facts = j;
         document.getElementById("Question").textContent = que_cand_facts['question text']
         document.getElementById("Candidate Answer").textContent = que_cand_facts['candidate text']
@@ -63,17 +65,19 @@
             optionsAsString += "<option value=\'s" + i + "\'>" + que_cand_facts['fact text'][num_facts-1-i] + "</option>";
         }
         $( 'select[id="sentences"]' ).append( optionsAsString );
+        // $(".ms-container").css("width": "600px");
 
         $('#sentences').multiSelect({
           selectableHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selectable supporting facts</div> <input type='text' class='search-input' autocomplete='off' placeholder='search'>",
-          selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div> <input type='text' class='search-input' autocomplete='off' placeholder='search'>",
+          selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div>",
+
+        
 
           afterInit: function(ms){
             var that = this,
                 $selectableSearch = that.$selectableUl.prev(),
-                $selectionSearch = that.$selectionUl.prev(),
-                selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)',
-                selectionSearchString = '#'+that.$container.attr('id')+' .ms-elem-selection.ms-selected';
+                // $selectionSearch = that.$selectionUl.prev(),
+                selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)';
 
             that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
             .on('keydown', function(e){
@@ -83,25 +87,25 @@
               }
             });
 
-            that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
-            .on('keydown', function(e){
-              if (e.which == 40){
-                that.$selectionUl.focus();
-                return false;
-              }
-            });
+            // that.qs2 = $selectionSearch.quicksearch(selectionSearchString)
+            // .on('keydown', function(e){
+            //   if (e.which == 40){
+            //     that.$selectionUl.focus();
+            //     return false;
+            //   }
+            // });
           },
           afterSelect: function(){
             this.qs1.cache();
-            this.qs2.cache();
+            // this.qs2.cache();
           },
           afterDeselect: function(){
             this.qs1.cache();
-            this.qs2.cache();
+            // this.qs2.cache();
           }
         });
 
-
+        $(".ms-container").css('width', '800px'); 
 
       });
   });
