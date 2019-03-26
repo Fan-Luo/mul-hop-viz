@@ -32,8 +32,8 @@ class InputModule(nn.Module):
         super(InputModule,self).__init__()
         self.gru = nn.GRU(input_size=300, hidden_size=hidden_size, num_layers=1, bidirectional = True, dropout=0.0)
 
-        # dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
-        dict_path = "glove.840B.300d.pickle"
+        dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
+        #dict_path = "glove.840B.300d.pickle"
 
         with open(dict_path, 'rb') as input_file:
             self.glove_dict = pickle.load(input_file) 
@@ -185,7 +185,7 @@ class DyMemNet_GRUReasoner(nn.Module):
 
         selection_loss =0 
         for hop in np.arange(self.n_hop):
-            adjusted_annotation = 11-annotated_sen[hop]
+            adjusted_annotation = 10-annotated_sen[hop]
             selection_loss+=self.criterion(att_score[hop].view(1,11), torch.tensor(adjusted_annotation).view(1))
         preds=1
         #preds = F.softmax(output, dim=1)
