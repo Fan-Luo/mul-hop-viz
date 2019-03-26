@@ -10,7 +10,7 @@ To run it:
 
 	( I use pytorch_*1.0.0*. If the version is too low, it can be problematic.)
 
-4. go to http://127.0.0.1:5000/**annotation**
+4. go to http://127.0.0.1:5000/annotation
 
  (You will see a skeleton page first. About half a second, the first example is loaded after Get from the model.)
  

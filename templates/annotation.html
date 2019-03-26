@@ -63,6 +63,7 @@
 
             $( 'select[id="facts"]' ).append( optionsAsString );
             $('#facts').multiSelect('refresh');
+            $(".ms-container").css('width', '800px'); 
 
         },
         error: function( jqXhr, textStatus, errorThrown ){
