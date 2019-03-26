@@ -1,0 +1,195 @@
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  
+  <style>
+    .bottom-one 
+      { margin-bottom: 2cm; }
+    .left-sapce 
+      { margin-left: 15px; }
+  </style>
+
+  <title>Viz for Multi-hop Reasoning</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/css/multi-select.css">
+</head>
+
+<body>
+
+  <h1> Visualization for Multi-hop Reasoning </h1> 
+
+  <h3> Question: </h3> 
+  <div id="Question"> </div>
+
+  <h3> Candidate Answer: </h3> 
+  <div id="Candidate Answer" class="bottom-one"> </div>
+
+  <select id="facts" multiple="multiple" name="facts[]">
+<!--     <option value='s1'>elem 1</option>
+    <option value='s2'>elem 2</option>
+    <option value='s3'>elem 3</option>
+ -->
+  </select>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.1/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.quicksearch/2.3.1/jquery.quicksearch.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/js/jquery.multi-select.js'></script>
+  <script type="text/javascript">
+
+  function annotation_and_next_example(input_annotation) {
+    $.ajax({
+        url: "http://127.0.0.1:5000/annotation_and_next_example",
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(input_annotation),
+        success: function( data, textStatus, jQxhr ){
+            que_cand_facts = data;
+            document.getElementById("Question").textContent = que_cand_facts['question_text']
+            document.getElementById("Candidate Answer").textContent =  que_cand_facts['choice_text']
+         
+            var optionsAsString = "";
+            var num_facts = que_cand_facts['facts_text'].length
+
+            for(var i = 0; i < num_facts; i++) { 
+                //Read options reversely, since the facts are ranked in descending order by lucene score
+                optionsAsString += "<option value=\'s" + i + "\'>" + que_cand_facts['facts_text'][num_facts-1-i] + "</option>";
+            }
+
+            $( 'select[id="facts"]' ).append( optionsAsString );
+            $('#facts').multiSelect('refresh');
+
+        },
+        error: function( jqXhr, textStatus, errorThrown ){
+            $('#facts').html( "There was an error" );
+            console.log( errorThrown );
+        },
+        timeout: 3000
+    });
+  }
+
+
+  $(document).ready(function() {
+
+    // $.getJSON( "static/fan_sample.json", function( j ) {
+      // que_cand_facts = j;
+
+    $.ajax({
+      url: "http://127.0.0.1:5000/fetch_first_example",
+      method: 'GET',
+      contentType: 'application/json',
+      success: function(data, textStatus, jQxhr){
+        que_cand_facts = data;
+        document.getElementById("Question").textContent = que_cand_facts['question_text']
+        document.getElementById("Candidate Answer").textContent =  que_cand_facts['choice_text']
+     
+        var optionsAsString = "";
+        var num_facts = que_cand_facts['facts_text'].length
+
+        for(var i = 0; i < num_facts; i++) { 
+            //Read options reversely, since the facts are ranked in descending order by lucene score
+            optionsAsString += "<option value=\'s" + i + "\'>" + que_cand_facts['facts_text'][num_facts-1-i] + "</option>";
+        }
+
+        $( 'select[id="facts"]' ).append( optionsAsString );
+
+        $('#facts').multiSelect({
+          selectableHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selectable supporting facts</div> <input type='text' class='search-input' autocomplete='off' placeholder='search'>",
+          selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div>", 
+
+          // Searchable
+          afterInit: function(ms){
+            var that = this,
+                $selectableSearch = that.$selectableUl.prev(),
+                selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)';
+
+            that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
+            .on('keydown', function(e){
+              if (e.which === 40){
+                that.$selectableUl.focus();
+                return false;
+              }
+            });
+
+
+          },
+          afterSelect: function(){
+            this.qs1.cache();
+          },
+          afterDeselect: function(){
+            this.qs1.cache();
+          }
+        });
+
+        $(".ms-container").css('width', '800px'); 
+              
+      },
+      error: function( jqXhr, textStatus, errorThrown ){
+          $('#facts').html( "There was an error" );
+          console.log( errorThrown );
+      }
+
+    });
+
+
+    //post selected_facts_indexes to server, and get next example
+    $('#next_example').click(function() {
+
+      var facts_ids = $("div.ms-selection > ul.ms-list > li.ms-elem-selection").map(function() {
+            return this.id;
+          }).get();
+
+      var selected_facts_ids = $(".ms-selection").find(".ms-selected").map(function() {
+            return this.id;
+          }).get();
+      //selected_facts_ids are inner ids used by multi-select, and it does not start from 0
+
+      var selected_facts_indexes = [];
+      for(var i=0; i<facts_ids.length;i++){
+        if($.inArray(facts_ids[i], selected_facts_ids) != -1){
+          selected_facts_indexes.push(i);
+        }
+      }
+
+      for(var i=0; i<selected_facts_indexes.length;i++){
+        console.log(selected_facts_indexes[i]);
+      }
+
+
+      $( 'select[id="facts"]' )
+      .empty();
+
+      annotation_and_next_example(selected_facts_indexes);   
+      selected_facts_ids = [];
+      selected_facts_indexes = [];
+      que_cand_facts = "";
+      // $('#facts').multiSelect('deselect_all');
+
+      return false;
+
+
+    });
+
+ 
+
+  });
+
+
+  // $('#add-option').on('click', function(){
+  //   $('#facts').multiSelect('addOption', { value: 42, text: 'test 42', index: 0 });
+  //   return false;
+  // });
+
+
+  </script>
+
+  <button id="next_example">next</button>  
+
+</body>
+
+</html>
