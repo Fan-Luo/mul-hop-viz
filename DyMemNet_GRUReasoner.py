@@ -32,8 +32,8 @@ class InputModule(nn.Module):
         super(InputModule,self).__init__()
         self.gru = nn.GRU(input_size=300, hidden_size=hidden_size, num_layers=1, bidirectional = True, dropout=0.0)
 
-        # dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
-        dict_path = "glove.840B.300d.pickle"
+        dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
+        #dict_path = "glove.840B.300d.pickle"
 
         with open(dict_path, 'rb') as input_file:
             self.glove_dict = pickle.load(input_file) 
@@ -180,14 +180,19 @@ class DyMemNet_GRUReasoner(nn.Module):
         _, pred_ids = torch.max(preds, dim=1)
         return loss, pred_ids
 
-    def get_loss_interactive(self, output, targets, att_score, annotated_sen):
+    def get_loss_interactive(self, outputs, targets, att_score, annotated_sen):
         #prediction_loss = self.criterion(output, targets.view(1))
 
+
+        print("What the hell is the output!", outputs)
+        print("What the hell is the output!", outputs.size())
+
         selection_loss =0 
+        selection_loss+=self.criterion(outputs.view(1,4), torch.tensor(targets).view(1))
         for hop in np.arange(self.n_hop):
             adjusted_annotation = 10-annotated_sen[hop]
             selection_loss+=self.criterion(att_score[hop].view(1,11), torch.tensor(adjusted_annotation).view(1))
-        preds=1
+        _, preds=torch.max(outputs.view(1,4), dim=1)
         #preds = F.softmax(output, dim=1)
         #_, pred_ids = torch.max(preds, dim=1)
         #return prediction_loss+selection_loss, pred_ids
@@ -218,7 +223,7 @@ class DyMemNet_Trainer():
             self.instances_dev = pickle.load(input_file)
 
         self.att_scores = 0
-        self.outputs = 0
+        self.outputs = {}
 
         self.training_instance_counter = 0
 
@@ -227,7 +232,7 @@ class DyMemNet_Trainer():
         # with open('data_'+data_noise_percent+'PercentNoise/MemNet_TestQuestions_Pos.pickle', 'rb') as input_file:
         #     self.instances_test = pickle.load(input_file)
 
-    def trainEpoch(self, n_epoch=1, n_samples = 10):
+    def trainEpoch(self, n_epoch=1, n_samples = 400):
         save_folder_path = 'DyMemNet_GRUReasoner'
         if not os.path.exists(save_folder_path):
             os.makedirs(save_folder_path)
@@ -292,20 +297,21 @@ class DyMemNet_Trainer():
         facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
         facts_text.append(" ".join(instance.science_fact_text))
 
-        outputs, att_scores = self.classifier(instance.question_text, instance.choices_text[choice_id], instance.science_fact_text, instance.knowledge_fact_text)
+        output, att_scores = self.classifier(instance.question_text, instance.choices_text[choice_id], instance.science_fact_text, instance.knowledge_fact_text)
         
 
-        self.outputs = outputs
-        self.att_scores = att_scores
+        self.outputs[choice_id] = output
+        if choice_id==np.argmax(np.array(instance.target)):
+            self.att_scores = att_scores
 
         att_scores_list = [att_score_list.detach().tolist() for att_score_list in att_scores]
-        return outputs.detach().tolist(), att_scores_list, " ".join(instance.question_text), " ".join(instance.choices_text[choice_id]), facts_text
+        return output.detach().tolist(), att_scores_list, " ".join(instance.question_text), " ".join(instance.choices_text[choice_id]), facts_text
 
     def train_interactive_backward(self, target, user_selection):
-        model_output = self.outputs
+        model_outputs = torch.stack([self.outputs[0], self.outputs[1],self.outputs[2],self.outputs[3]])
         model_att_scores = self.att_scores
 
-        loss, prediction = self.classifier.get_loss_interactive(model_output, target, model_att_scores, user_selection)
+        loss, prediction = self.classifier.get_loss_interactive(model_outputs, target, model_att_scores, user_selection)
         loss.backward()
         self.optim.step()
 
