@@ -120,17 +120,11 @@ def annotation_and_next_example():
     response = jsonify(web_response)     
     return response
 
-# @app.route("/selection", methods=['POST'])
-# def selection():
-#     return render_template("selection.html" )
 
-@app.route("/train_epoch", methods=['POST'])
-def annotation_and_next_example():
-
-
-@app.route("/stop_training", methods=['POST'])
-def annotation_and_next_example():
-
+@app.route("/submit", methods=['GET'])
+def submit():
+    
+    return response
 
 
  
