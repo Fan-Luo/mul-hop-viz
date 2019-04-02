@@ -89,7 +89,7 @@ def annotation_and_next_example():
     print('DEBUG question text:',instance.question_text)
     print('DEBUG choice text:', instance.choices_text[answer_choice_id])
 
-
+    trainer.instances_train[trainer.training_instance_counter].user_annotations = user_annotations
     loss, predict = trainer.train_interactive_backward(answer_choice_id, user_annotations)   # back propagate error according to user annotated facts
     # caution: the current model only trained on the selected fact but not the actual choice, because currently we only show the question and the correct choice.
     
@@ -123,6 +123,14 @@ def annotation_and_next_example():
 # @app.route("/selection", methods=['POST'])
 # def selection():
 #     return render_template("selection.html" )
+
+@app.route("/train_epoch", methods=['POST'])
+def annotation_and_next_example():
+
+
+@app.route("/stop_training", methods=['POST'])
+def annotation_and_next_example():
+
 
 
  

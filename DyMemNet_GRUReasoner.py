@@ -184,12 +184,12 @@ class DyMemNet_GRUReasoner(nn.Module):
         #prediction_loss = self.criterion(output, targets.view(1))
 
 
-        print("What the hell is the output!", outputs)
-        print("What the hell is the output!", outputs.size())
+        #print("What the hell is the output!", outputs)
+        #print("What the hell is the output!", outputs.size())
 
         selection_loss =0 
         selection_loss+=self.criterion(outputs.view(1,4), torch.tensor(targets).view(1))
-        for hop in np.arange(self.n_hop):
+        for hop in np.arange(len(annotated_sen)):
             adjusted_annotation = 10-annotated_sen[hop]
             selection_loss+=self.criterion(att_score[hop].view(1,11), torch.tensor(adjusted_annotation).view(1))
         _, preds=torch.max(outputs.view(1,4), dim=1)
@@ -207,6 +207,7 @@ class Instance:
         self.science_fact_text = fact_text
         self.knowledge_fact_text = knowledge_text
         self.target = target
+        self.human_annotations = 0
 
 
 class DyMemNet_Trainer():
