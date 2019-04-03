@@ -124,7 +124,12 @@ def annotation_and_next_example():
 @app.route("/submit", methods=['GET'])
 def submit():
     
-    return response
+    return #response
+
+@app.route("/test", methods=['GET'])
+def test():
+    
+    return #response    
 
 
  
