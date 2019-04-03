@@ -8,6 +8,9 @@ from sklearn.manifold import TSNE
 import json
 import numpy as np
 from DyMemNet_GRUReasoner import *
+import datetime
+
+
 
 app = Flask(__name__)
 # CORS(app) # needed for cross-domain requests, allow everything by default
@@ -123,7 +126,9 @@ def annotation_and_next_example():
 
 @app.route("/submit", methods=['GET'])
 def submit():
-    with open('data_0PercentNoise/MemNet_TrainQuestions_Pos_Annotated.pickle', 'wb') as handle:
+    timeRaw = datetime.datetime.now()
+    currentDT = str(timeRaw.year)+'_'+str(timeRaw.month)+'_'+str(timeRaw.day)+'_'+str(timeRaw.hour)+'_'+str(timeRaw.minute)
+    with open('data_0PercentNoise/MemNet_TrainQuestions_Pos_Annotated'+currentDT+'.pickle', 'wb') as handle:
         pickle.dump(trainer.instances_train, handle)
 
     instance = trainer.instances_train[0]
