@@ -64,6 +64,7 @@
 
             $( 'select[id="facts"]' ).append( optionsAsString );
             $('#facts').multiSelect('refresh');
+            $('#facts').multiSelect({keepOrder: true});
             $(".ms-container").css('width', '800px'); 
             $("div.ms-selection > ul.ms-list").sortable();
 
@@ -103,7 +104,8 @@
 
         $('#facts').multiSelect({
           selectableHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selectable supporting facts</div> <input type='text' class='search-input' autocomplete='off' placeholder='search'>",
-          selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div>", 
+          selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div>",
+          keepOrder: true, 
 
           // Searchable
           afterInit: function(ms){
