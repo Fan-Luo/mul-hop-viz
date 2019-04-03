@@ -40,6 +40,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.quicksearch/2.3.1/jquery.quicksearch.js"></script>
   <script src='https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/js/jquery.multi-select.js'></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
   <script type="text/javascript">
 
   function annotation_and_next_example(input_annotation) {
@@ -64,6 +65,7 @@
             $( 'select[id="facts"]' ).append( optionsAsString );
             $('#facts').multiSelect('refresh');
             $(".ms-container").css('width', '800px'); 
+            $("div.ms-selection > ul.ms-list").sortable();
 
         },
         error: function( jqXhr, textStatus, errorThrown ){
@@ -128,6 +130,7 @@
         });
 
         $(".ms-container").css('width', '800px'); 
+        $("div.ms-selection > ul.ms-list").sortable();
               
       },
       error: function( jqXhr, textStatus, errorThrown ){
@@ -141,20 +144,31 @@
     //post selected_facts_indexes to server, and get next example
     $('#next_example').click(function() {
 
-      var facts_ids = $("div.ms-selection > ul.ms-list > li.ms-elem-selection").map(function() {
+      //original list of fact ids, such as "3613-selectable"
+      var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
             return this.id;
           }).get();
 
+      var facts_id_nums = [];  // digital part of ids, such as 3613
+      $.each(facts_ids, function(index, element){
+          facts_id_nums.push(element.split('-')[0]);
+      });
+ 
+      //can be re-ordered by dragging
       var selected_facts_ids = $(".ms-selection").find(".ms-selected").map(function() {
             return this.id;
           }).get();
-      //selected_facts_ids are inner ids used by multi-select, and it does not start from 0
+      
+      var selected_facts_id_nums = [];
+      $.each(selected_facts_ids, function(index, element){
+          selected_facts_id_nums.push(element.split('-')[0]);
+      });
+ 
 
       var selected_facts_indexes = [];
-      for(var i=0; i<facts_ids.length;i++){
-        if($.inArray(facts_ids[i], selected_facts_ids) != -1){
-          selected_facts_indexes.push(i);
-        }
+      for(var i=0; i<selected_facts_id_nums.length;i++){  
+      //in the order of selected facts (after re-ordering)
+        selected_facts_indexes.push(facts_id_nums.indexOf( selected_facts_id_nums[i] ) );
       }
 
       for(var i=0; i<selected_facts_indexes.length;i++){
@@ -167,9 +181,10 @@
 
       annotation_and_next_example(selected_facts_indexes);   
       selected_facts_ids = [];
+      selected_facts_id_nums = [];
       selected_facts_indexes = [];
       que_cand_facts = "";
-      // $('#facts').multiSelect('deselect_all');
+
       return false;
     });
 
