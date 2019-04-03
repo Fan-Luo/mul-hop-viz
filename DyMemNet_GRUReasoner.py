@@ -186,6 +186,8 @@ class Classifier(nn.Module):
 
         #print("What the hell is the output!", outputs)
         #print("What the hell is the output!", outputs.size())
+        print('length of att score:', len(att_score))
+        print('length of att score 0:', len(att_score[0]))
 
         selection_loss =0 
         selection_loss+=self.criterion(outputs.view(1,4), torch.tensor(targets).view(1))
@@ -214,6 +216,7 @@ class DyMemNet_Trainer():
     def __init__(self, load_model=True, train_path = 'data_0PercentNoise/MemNet_TrainQuestions_Pos.pickle', dev_path = 'data_0PercentNoise/MemNet_DevQuestions_Pos.pickle'):
         if load_model:
             self.classifier = torch.load('saved_model/MemNet_Trained_Epoch_0')
+            self.classifier.n_hop = 4
         else:
             self.classifier = Classifier()
         self.optim =  torch.optim.Adam(self.classifier.parameters())
