@@ -123,18 +123,62 @@ def annotation_and_next_example():
 
 @app.route("/submit", methods=['GET'])
 def submit():
-    
-    return #response
+    with open('data_0PercentNoise/MemNet_TrainQuestions_Pos_Annotated.pickle', 'wb') as handle:
+        pickle.dump(trainer.instances_train, handle)
 
+    instance = trainer.instances_train[0]
+    answer_choice_id = np.argmax(np.array(instance.target))
+    # output, att_scores, question_text, candidate_text, facts_text = classifier.train_interactive_forward(instance, 0)
+    # output is the confidence of the correct answer
+
+    print('=================================')
+    print('DEBUG question text:',instance.question_text)
+    print('DEBUG correct choice text:', instance.choices_text[answer_choice_id])
+
+    for choice_id in np.arange(4):
+        output, scores, question_text, choice_text, facts_text= trainer.train_interactive_forward(instance, choice_id)
+        
+        if choice_id==answer_choice_id:
+            web_response = {}
+            web_response['output_score'] = output
+            web_response['fact_scores'] = scores
+            web_response['question_text'] = question_text
+            web_response['choice_text'] = choice_text
+            web_response['facts_text'] = facts_text
+
+    response = jsonify(web_response)     
+    return response
+    
 @app.route("/test", methods=['GET'])
 def test():
+    trainer.test()
     
-    return #response    
+    instance = trainer.instances_train[0]
+    answer_choice_id = np.argmax(np.array(instance.target))
+    # output, att_scores, question_text, candidate_text, facts_text = classifier.train_interactive_forward(instance, 0)
+    # output is the confidence of the correct answer
 
+    print('=================================')
+    print('DEBUG question text:',instance.question_text)
+    print('DEBUG correct choice text:', instance.choices_text[answer_choice_id])
+
+    for choice_id in np.arange(4):
+        output, scores, question_text, choice_text, facts_text= trainer.train_interactive_forward(instance, choice_id)
+        
+        if choice_id==answer_choice_id:
+            web_response = {}
+            web_response['output_score'] = output
+            web_response['fact_scores'] = scores
+            web_response['question_text'] = question_text
+            web_response['choice_text'] = choice_text
+            web_response['facts_text'] = facts_text
+
+    response = jsonify(web_response)     
+    return response
 
  
 if (__name__ == '__main__'):
     global trainer
-    trainer = DyMemNet_Trainer()
+    trainer = DyMemNet_Trainer(load_model=True)
     app.run(debug = True)
 	

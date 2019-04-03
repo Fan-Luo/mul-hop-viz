@@ -25,6 +25,11 @@ print('threads after set:',torch.get_num_threads())
 
 #dict_path = "/work/zhengzhongliang/DyMemNet_2019/GloveDict/glove.840B.300d.pickle"
 
+dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
+#dict_path = "glove.840B.300d.pickle"
+
+with open(dict_path, 'rb') as input_file:
+    glove_dict = pickle.load(input_file)
 
 
 class InputModule(nn.Module):
@@ -32,19 +37,14 @@ class InputModule(nn.Module):
         super(InputModule,self).__init__()
         self.gru = nn.GRU(input_size=300, hidden_size=hidden_size, num_layers=1, bidirectional = True, dropout=0.0)
 
-        # dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
-        dict_path = "glove.840B.300d.pickle"
-
-        with open(dict_path, 'rb') as input_file:
-            self.glove_dict = pickle.load(input_file) 
         # the hidden_size is determined when the InputModule is instantiated.
 
     def forward(self, input_text):
         # input text should be a nested list, n_sentences * batch_size=1 * sentence_list. e.g., [['first','sentence','.']]
         input_vecs = list([])
         for word in input_text:
-            if word in self.glove_dict:
-                input_vecs.append(torch.tensor(self.glove_dict[word],dtype = torch.float32))
+            if word in glove_dict:
+                input_vecs.append(torch.tensor(glove_dict[word],dtype = torch.float32))
             else:
                 input_vecs.append(torch.tensor(np.ones(300)*0.1,dtype = torch.float32))
 
@@ -76,9 +76,9 @@ class InputModule(nn.Module):
         return torch.squeeze(r_ctx)
 
 
-class DyMemNet_GRUReasoner(nn.Module):
+class Classifier(nn.Module):
     def __init__(self, hidden_size=200, gru_hidden_size=200, output_size = 1, n_hop = 4):  #default hops:3
-        super(DyMemNet_GRUReasoner, self).__init__()
+        super(Classifier, self).__init__()
         self.inputModule = InputModule(hidden_size=hidden_size)
 
         self.linear_extract_1 = nn.Linear(hidden_size*12, hidden_size)
@@ -211,8 +211,11 @@ class Instance:
 
 
 class DyMemNet_Trainer():
-    def __init__(self, train_path = 'data_0PercentNoise/MemNet_TrainQuestions_Pos.pickle', dev_path = 'data_0PercentNoise/MemNet_DevQuestions_Pos.pickle'):
-        self.classifier = DyMemNet_GRUReasoner()
+    def __init__(self, load_model=True, train_path = 'data_0PercentNoise/MemNet_TrainQuestions_Pos.pickle', dev_path = 'data_0PercentNoise/MemNet_DevQuestions_Pos.pickle'):
+        if load_model:
+            self.classifier = torch.load('saved_model/MemNet_Trained_Epoch_0')
+        else:
+            self.classifier = Classifier()
         self.optim =  torch.optim.Adam(self.classifier.parameters())
 
         with open(train_path, 'rb') as input_file:
@@ -226,7 +229,7 @@ class DyMemNet_Trainer():
         self.att_scores = 0
         self.outputs = {}
 
-        self.training_instance_counter = 0
+        self.training_instance_counter = 0 
 
 
 
@@ -346,12 +349,12 @@ class DyMemNet_Trainer():
 
             dev_loss += loss
             # input('press enter to continue')
-            # if (i - 1) % 200 == 0:
-            #     print('sample ', i, 'average training loss:', dev_loss / 200)
-            #     dev_loss = 0
+            if (i - 1) % 200 == 0 and i!=1:
+                print('sample ', i, 'average training loss:', dev_loss / 200)
+                dev_loss = 0
         print('dev acc:', correct_count / 1.0 / len(self.instances_dev))
-        model_results[epoch, 2] = dev_loss/len(self.instances_dev)
-        model_results[epoch, 3] = correct_count / 1.0 / len(self.instances_dev)
+        #model_results[epoch, 2] = dev_loss/len(self.instances_dev)
+        #model_results[epoch, 3] = correct_count / 1.0 / len(self.instances_dev)
 
 
 
