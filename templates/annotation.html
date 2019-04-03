@@ -190,6 +190,19 @@
       return false;
     });
 
+    $('#i_do_not_know').click(function() {
+ 
+      var selected_facts_indexes = [];
+ 
+      $( 'select[id="facts"]' )
+      .empty();
+
+      annotation_and_next_example(selected_facts_indexes);   
+      que_cand_facts = "";
+
+      return false;
+    });
+
     $('#submit').click(function() {
       $.ajax({
         url: "http://127.0.0.1:5000/submit",
@@ -232,6 +245,7 @@
   </script>
 
   <button id="next_example">next</button>  
+  <button id="i_do_not_know">skip</button>  
   <button id="submit">submit</button>  
   <button id="test">test</button>  
 
