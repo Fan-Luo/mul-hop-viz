@@ -1,0 +1,5 @@
+*.DS_Store
+__pycache__
+static/knowledge_fact*
+static/*.js
+glove.840B.300d.pickle
