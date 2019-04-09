@@ -8,6 +8,9 @@
   <style>
     .left-sapce 
       { margin-left: 600px; }
+    .span-color{
+      background-color: green; 
+    }
   </style>
 
   <title>Viz for Multi-hop Reasoning</title>
@@ -53,17 +56,18 @@
               que_cand_facts = data;
               document.getElementById("Question").textContent = que_cand_facts['question_text'];
               var ol = document.getElementById("Candidate Answer");
-              if(ol.hasChildNodes()){
+              if(ol.hasChildNodes()){  //clear candidate answers from previous question
                 ol.innerHTML = '';
               }
 
               for (var i = 0; i < 4; i++){
                 var li = document.createElement("li");
-                if(i == parseInt(que_cand_facts['answer_choice_id'])){
-                  li.style.backgroundColor = "green";  
+                var spanNode = document.createElement("span");
+                spanNode.textContent = que_cand_facts['choice_text'][i];
+                if(i == parseInt(que_cand_facts['answer_choice_id'])){ 
+                  spanNode.setAttribute('style', 'background-color: yellow');
                 }
-
-                li.appendChild(document.createTextNode(que_cand_facts['choice_text'][i]));
+                li.appendChild(spanNode);
                 ol.appendChild(li);
               }
            
@@ -116,11 +120,12 @@
           var ol = document.getElementById("Candidate Answer");
           for (var i = 0; i < 4; i++){
             var li = document.createElement("li");
-            if(i == parseInt(que_cand_facts['answer_choice_id'])){
-              li.style.backgroundColor = "green";  
+            var spanNode = document.createElement("span");
+            spanNode.textContent = que_cand_facts['choice_text'][i];
+            if(i == parseInt(que_cand_facts['answer_choice_id'])){ 
+              spanNode.setAttribute('style', 'background-color: yellow');
             }
-
-            li.appendChild(document.createTextNode(que_cand_facts['choice_text'][i]));
+            li.appendChild(spanNode);
             ol.appendChild(li);
           }
 
@@ -223,7 +228,7 @@
         var annotations = [];
         annotations.push(selected_facts_indexes);
         annotations.push(add_facts);
-        annotation_and_next_example(annotations);   
+        annotation_and_next_example(selected_facts_indexes);   
 
         $( 'select[id="facts"]' )
         .empty();
