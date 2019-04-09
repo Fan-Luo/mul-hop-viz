@@ -22,7 +22,11 @@ app = Flask(__name__)
 # CORS(app) # needed for cross-domain requests, allow everything by default
 # model_api = get_model_api()
 
-
+class Annotation():
+    def __init__(self, question_id, annotations, new_facts):
+        self.question_id = question_id
+        self.annotations = annotations
+        self.new_facts = new_facts
 
 @app.route("/")
 def user():
@@ -61,6 +65,12 @@ def annotation():
 @app.route("/fetch_first_example", methods=['GET'])
 def fetch_first_example():
     
+    if not os.path.exists('saved_annotations'):
+        os.mkdir('saved_annotations')
+        
+    f =  open('saved_annotations/'+annotation_file_name+'.pickle', 'wb')
+    f.close()
+    
     instance = trainer.instances_train[0]
     answer_choice_id = np.argmax(np.array(instance.target))
     # output, att_scores, question_text, candidate_text, facts_text = classifier.train_interactive_forward(instance, 0)
@@ -94,7 +104,9 @@ def annotation_and_next_example():
     instance = trainer.instances_train[trainer.training_instance_counter]
     answer_choice_id = np.argmax(np.array(instance.target))
     
-    pickle.dump(Annotation(instance.question_id, user_annotations[0], user_annotations[1]))
+    with open('saved_annotations/'+annotation_file_name+'.pickle', 'ab') as f:
+        pickle.dump(Annotation(instance.question_id, user_annotations[0], user_annotations[1]), f)
+        #pickle.dump(1, f)
 
     print('=================old question================')
     print('DEBUG question text:',instance.question_text)
@@ -191,14 +203,10 @@ def annotation_and_next_example():
 
  
 if (__name__ == '__main__'):
-    if not os.path.exists('saved_annotations'):
-        os.mkdir('saved_annotations')
-        
-    f=open('saved_annotations/'+annotation_file_name+'.pickle', 'wb')
 
     global trainer
     trainer = DyMemNet_Trainer(load_model=True)
     app.run(debug = True)
     
-    f.close()
+
     
