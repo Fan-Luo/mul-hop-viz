@@ -73,8 +73,9 @@ def fetch_first_example():
             web_response['output_score'] = output
             web_response['fact_scores'] = scores
             web_response['question_text'] = question_text
-            web_response['choice_text'] = choice_text
+            web_response['choice_text'] = instance.choices_text #'1.' + " ".join(instance.choices_text[0]) +'\n\n2.'+" ".join(instance.choices_text[1])+'\n\n3.'+" ".join(instance.choices_text[2])+'\n\n4.'+" ".join(instance.choices_text[3])
             web_response['facts_text'] = facts_text
+            web_response['answer_choice_id'] = str(answer_choice_id)
 
     response = jsonify(web_response)     
     return response
@@ -117,8 +118,9 @@ def annotation_and_next_example():
             web_response['output_score'] = output
             web_response['fact_scores'] = scores
             web_response['question_text'] = question_text
-            web_response['choice_text'] = choice_text
+            web_response['choice_text'] =  instance.choices_text #'1.' + " ".join(instance.choices_text[0]) +'\n\n2.'+" ".join(instance.choices_text[1])+'\n\n3.'+" ".join(instance.choices_text[2])+'\n\n4.'+" ".join(instance.choices_text[3])
             web_response['facts_text'] = facts_text
+            web_response['answer_choice_id'] = str(answer_choice_id)
 
     response = jsonify(web_response)     
     return response
@@ -185,4 +187,4 @@ if (__name__ == '__main__'):
     global trainer
     trainer = DyMemNet_Trainer(load_model=True)
     app.run(debug = True)
-	
+    

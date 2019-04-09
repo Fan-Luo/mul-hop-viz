@@ -26,7 +26,7 @@
     <div id="Question"> </div>
 
     <h3> Candidate Answer: </h3> 
-    <div id="Candidate Answer" class="bottom-one"> </div>
+    <ol id="Candidate Answer" class="bottom-one"> </ol>
 
     <select id="facts" multiple="multiple" name="facts[]">
   <!--     <option value='s1'>elem 1</option>
@@ -51,11 +51,24 @@
           data: JSON.stringify(input_annotation),
           success: function( data, textStatus, jQxhr ){
               que_cand_facts = data;
-              document.getElementById("Question").textContent = que_cand_facts['question_text']
-              document.getElementById("Candidate Answer").textContent =  que_cand_facts['choice_text']
+              document.getElementById("Question").textContent = que_cand_facts['question_text'];
+              var ol = document.getElementById("Candidate Answer");
+              if(ol.hasChildNodes()){
+                ol.innerHTML = '';
+              }
+
+              for (var i = 0; i < 4; i++){
+                var li = document.createElement("li");
+                if(i == parseInt(que_cand_facts['answer_choice_id'])){
+                  li.style.backgroundColor = "green";  
+                }
+
+                li.appendChild(document.createTextNode(que_cand_facts['choice_text'][i]));
+                ol.appendChild(li);
+              }
            
               var optionsAsString = "";
-              var num_facts = que_cand_facts['facts_text'].length
+              var num_facts = que_cand_facts['facts_text'].length;
 
               for(var i = 0; i < num_facts; i++) { 
                   //Read options reversely, since the facts are ranked in descending order by lucene score
@@ -69,7 +82,15 @@
               $("div.ms-selectable > ul.ms-list").css({'height': '350px', 'resize': 'both'});
               $("div.ms-selection > ul.ms-list").css({'height': '350px', 'resize': 'both'});
               $("div.ms-selection > ul.ms-list").sortable();
+              
+              var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
+                  return this.id;
+                }).get();
 
+              facts_id_nums = [];  // digital part of ids, such as 3613
+              $.each(facts_ids, function(index, element){
+                  facts_id_nums.push(element.split('-')[0]);
+              });
           },
           error: function( jqXhr, textStatus, errorThrown ){
               $('#facts').html( "There was an error" );
@@ -91,11 +112,20 @@
         contentType: 'application/json',
         success: function(data, textStatus, jQxhr){
           que_cand_facts = data;
-          document.getElementById("Question").textContent = que_cand_facts['question_text']
-          document.getElementById("Candidate Answer").textContent =  que_cand_facts['choice_text']
-       
+          document.getElementById("Question").textContent = que_cand_facts['question_text'];
+          var ol = document.getElementById("Candidate Answer");
+          for (var i = 0; i < 4; i++){
+            var li = document.createElement("li");
+            if(i == parseInt(que_cand_facts['answer_choice_id'])){
+              li.style.backgroundColor = "green";  
+            }
+
+            li.appendChild(document.createTextNode(que_cand_facts['choice_text'][i]));
+            ol.appendChild(li);
+          }
+
           var optionsAsString = "";
-          var num_facts = que_cand_facts['facts_text'].length
+          var num_facts = que_cand_facts['facts_text'].length;
 
           for(var i = 0; i < num_facts; i++) { 
               //Read options reversely, since the facts are ranked in descending order by lucene score
@@ -138,6 +168,15 @@
           $("div.ms-selection > ul.ms-list").css({'height': '350px', 'resize': 'both'});
           $("div.ms-selection > ul.ms-list").sortable();
                 
+          var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
+              return this.id;
+            }).get();
+
+          facts_id_nums = [];  // digital part of ids, such as 3613
+          $.each(facts_ids, function(index, element){
+              facts_id_nums.push(element.split('-')[0]);
+          });
+   
         },
         error: function( jqXhr, textStatus, errorThrown ){
             $('#facts').html( "There was an error" );
@@ -149,21 +188,10 @@
 
       //post selected_facts_indexes to server, and get next example
       $('#next_example').click(function() {
-
-        //original list of fact ids, such as "3613-selectable"
-        var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
-              return this.id;
-            }).get();
-
-        var facts_id_nums = [];  // digital part of ids, such as 3613
-        $.each(facts_ids, function(index, element){
-            facts_id_nums.push(element.split('-')[0]);
-        });
-   
-        //can be re-ordered by dragging
+        
         var selected_facts_ids = $(".ms-selection").find(".ms-selected").map(function() {
               return this.id;
-            }).get();
+            }).get();     //can be re-ordered by dragging
         
         var selected_facts_id_nums = [];
         $.each(selected_facts_ids, function(index, element){
@@ -172,23 +200,34 @@
    
 
         var selected_facts_indexes = [];
+        var add_facts = [];
         for(var i=0; i<selected_facts_id_nums.length;i++){  
-        //in the order of selected facts (after re-ordering)
-          selected_facts_indexes.push(facts_id_nums.indexOf( selected_facts_id_nums[i] ) );
+          //in the order of selected facts (after re-ordering)
+          var selected_id = facts_id_nums.indexOf( selected_facts_id_nums[i] );
+          if (selected_id == -1 ){    //not in the original options
+            add_facts.push( $('#' + selected_facts_ids[i]).text() );
+          }
+          else{
+            selected_facts_indexes.push(selected_id);
+          }
         }
 
-        for(var i=0; i<selected_facts_indexes.length;i++){
-          console.log(selected_facts_indexes[i]);
-        }
+        // for(var i=0; i<selected_facts_indexes.length;i++){
+        //   console.log(selected_facts_indexes[i]);
+        // }
 
+        // for(var i=0; i<add_facts.length;i++){
+        //   console.log(add_facts[i]);
+        // }
+
+        var annotations = [];
+        annotations.push(selected_facts_indexes);
+        annotations.push(add_facts);
+        annotation_and_next_example(annotations);   
 
         $( 'select[id="facts"]' )
         .empty();
 
-        annotation_and_next_example(selected_facts_indexes);   
-        selected_facts_ids = [];
-        selected_facts_id_nums = [];
-        selected_facts_indexes = [];
         que_cand_facts = "";
 
         return false;
@@ -196,12 +235,13 @@
 
       $('#i_do_not_know').click(function() {
    
-        var selected_facts_indexes = [];
+        var annotations = [[],[]];
    
+        annotation_and_next_example(annotations);   
+
         $( 'select[id="facts"]' )
         .empty();
 
-        annotation_and_next_example(selected_facts_indexes);   
         que_cand_facts = "";
 
         return false;
@@ -240,7 +280,7 @@
 
       $('#add_fact').click(function() {
 
-        add_text = $("div.ms-selection > input")["0"].value;   //text input as a new fact
+        var add_text = $("div.ms-selection > input")["0"].value;   //text input as a new fact
         if(add_text){
           ops = document.getElementById("facts").options;
           last_value = ops[ops.length-1].value;
@@ -249,6 +289,7 @@
 
           $('#facts').multiSelect('addOption', { value: add_value, text: add_text, index: last_value_id+1});
           $('#facts').multiSelect('select', add_value);
+          $("div.ms-selection > input")["0"].value = "";
         }
       });
 
