@@ -34,6 +34,11 @@ dict_path = "/lhome/zhengzhongliang/CLU_Projects/glove.840B.300d.pickle"
 with open(dict_path, 'rb') as input_file:
     glove_dict = pickle.load(input_file)
 
+class Annotation():
+    def __init__(self, question_id, annotations, new_facts):
+        self.question_id = question_id
+        self.annotations = annotations
+        self.new_facts = new_facts
 
 class InputModule(nn.Module):
     def __init__(self, hidden_size=100):
@@ -225,7 +230,7 @@ class Instance:
         self.science_fact_text = fact_text
         self.knowledge_fact_text = knowledge_text
         self.target = target
-        self.human_annotations = 0
+        self.question_id = 0
 
 
 class DyMemNet_Trainer():

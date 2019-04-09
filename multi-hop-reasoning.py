@@ -9,7 +9,13 @@ import json
 import numpy as np
 from DyMemNet_GRUReasoner import *
 import datetime
+import os
+import getpass
+import datetime
 
+username = getpass.getuser()
+now = datetime.datetime.now()
+annotation_file_name = username+'_'+str(now)[:10]+'_'+str(now)[11:13]+str(now)[14:16]
 
 
 app = Flask(__name__)
@@ -54,7 +60,6 @@ def annotation():
 
 @app.route("/fetch_first_example", methods=['GET'])
 def fetch_first_example():
-
     
     instance = trainer.instances_train[0]
     answer_choice_id = np.argmax(np.array(instance.target))
@@ -88,12 +93,14 @@ def annotation_and_next_example():
     user_annotations = request.json               # input is the selected facts with score 1
     instance = trainer.instances_train[trainer.training_instance_counter]
     answer_choice_id = np.argmax(np.array(instance.target))
+    
+    pickle.dump(Annotation(instance.question_id, user_annotations[0], user_annotations[1]), f)
 
     print('=================old question================')
     print('DEBUG question text:',instance.question_text)
     print('DEBUG choice text:', instance.choices_text[answer_choice_id])
 
-    trainer.instances_train[trainer.training_instance_counter].user_annotations = user_annotations
+    
     loss, predict = trainer.train_interactive_backward(answer_choice_id, user_annotations)   # back propagate error according to user annotated facts
     # caution: the current model only trained on the selected fact but not the actual choice, because currently we only show the question and the correct choice.
     
@@ -184,7 +191,14 @@ def annotation_and_next_example():
 
  
 if (__name__ == '__main__'):
+    if not os.path.exists('saved_annotations'):
+        os.mkdir('saved_annotations')
+        
+    f=open('saved_annotations/'+annotation_file_name+'.pickle', 'wb')
+
     global trainer
     trainer = DyMemNet_Trainer(load_model=True)
     app.run(debug = True)
+    
+    f.close()
     
