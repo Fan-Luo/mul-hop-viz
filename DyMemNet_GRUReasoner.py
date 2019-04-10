@@ -189,6 +189,7 @@ class Classifier(nn.Module):
     def get_loss_interactive(self, outputs, targets, att_score, annotated_sen):
         #prediction_loss = self.criterion(output, targets.view(1))
 
+        # annotated_sen[0] are the ids of the selected sentences
         annotated_sen[0] = [10-annotated_sen[0][i] for i in range(len(annotated_sen[0]))]
         #print("What the hell is the output!", outputs)
         #print("What the hell is the output!", outputs.size())
@@ -196,7 +197,8 @@ class Classifier(nn.Module):
         n_facts = 11+len(annotated_sen[1])
         if len(annotated_sen[1])>0:
             for i, _ in enumerate(annotated_sen[1]):
-                annotated_sen[0].append(11+i)
+                annotated_sen[0].append(11+i)         # annotated_sen[0] are the ids of the selected sentences, including the added facts
+
 
         annotated_sen_permu = list(itertools.permutations(annotated_sen[0]))
 
@@ -206,7 +208,7 @@ class Classifier(nn.Module):
           selection_loss =0 
           selection_loss+=self.criterion(outputs.view(1,4), torch.tensor(targets).view(1))
           
-          for hop in np.arange(len(annotated_sen_)):
+          for hop in np.arange(min(len(annotated_sen_), 4)):
               selection_loss+=self.criterion(att_score[hop].view(1,11+len(annotated_sen[1])), torch.tensor(annotated_sen_[hop]).view(1))
           selection_loss_torch_list.append(selection_loss)
           selection_loss_python_list.append(selection_loss.detach().item())

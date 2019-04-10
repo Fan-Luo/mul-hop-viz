@@ -21,7 +21,7 @@
 
 <body>
 
-  <div id = "main" class="main-class" style="margin-left:20px; margin-bottom:20px;">
+  <div id = "main" class="main-class" style="margin-left:20px; margin-bottom:10px;">
 
     <h1 style="margin-bottom:30px;"> Visualization for Multi-hop Reasoning </h1> 
 
@@ -29,7 +29,7 @@
     <div id="Question"> </div>
 
     <h4> Candidate Answer: </h4> 
-    <ol id="Candidate Answer" class="bottom-one"> </ol>
+    <ol id="Candidate Answer" style="margin-bottom:10px;"> </ol>
 
     <select id="facts" multiple="multiple" name="facts[]">
     <!--     <option value='s1'>elem 1</option>
@@ -105,7 +105,7 @@
             }
           });
 
-          $(".ms-container").css({'width': '1300px', 'margin-top': '30px', 'margin-bottom': '10px'}); 
+          $(".ms-container").css({'width': '1200px', 'margin-top': '30px', 'margin-bottom': '10px'}); 
           $("div.ms-selectable > ul.ms-list").css({'height': '300px', 'resize': 'both'});
           $("div.ms-selection > ul.ms-list").css({'height': '300px', 'resize': 'both'});
           $("div.ms-selection > ul.ms-list").sortable();
@@ -277,7 +277,7 @@
               $( 'select[id="facts"]' ).append( optionsAsString );
               $('#facts').multiSelect('refresh');
               $('#facts').multiSelect({keepOrder: true});   // in the order of selection sequence 
-              $(".ms-container").css({'width': '1300px', 'margin-top': '50px', 'margin-bottom': '50px'}); 
+              $(".ms-container").css({'width': '1200px', 'margin-top': '50px', 'margin-bottom': '50px'}); 
               $("div.ms-selectable > ul.ms-list").css({'height': '300px', 'resize': 'both'});  //resiziable
               $("div.ms-selection > ul.ms-list").css({'height': '300px', 'resize': 'both'});   //resiziable
               $("div.ms-selection > ul.ms-list").sortable();   //re-orderable

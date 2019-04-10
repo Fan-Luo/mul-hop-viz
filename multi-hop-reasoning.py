@@ -105,7 +105,7 @@ def annotation_and_next_example():
         pickle.dump({"question_id":instance.question_id, "annotation":user_annotations[0], "new_facts":user_annotations[1]}, f)
         #pickle.dump(1, f)
 
-    print('=================old question================')
+    print('=================old question forward and backward ================')
     print('DEBUG question text:',instance.question_text)
     print('DEBUG choice text:', instance.choices_text[answer_choice_id])
 
@@ -123,7 +123,7 @@ def annotation_and_next_example():
     answer_choice_id = np.argmax(np.array(instance.target))
 
 
-    print('=================new question================')
+    print('=================new question print================')
     print('DEBUG question text:',instance.question_text)
     print('DEBUG choice text:', instance.choices_text[answer_choice_id])
 
