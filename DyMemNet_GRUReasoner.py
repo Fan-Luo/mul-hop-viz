@@ -9,6 +9,7 @@ from random import shuffle
 import sys
 import os
 import itertools
+import operator
 
 
 print("pytorch version:", torch.__version__)
@@ -27,8 +28,8 @@ print('threads after set:',torch.get_num_threads())
 
 #dict_path = "/work/zhengzhongliang/DyMemNet_2019/GloveDict/glove.840B.300d.pickle"
 
-# dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
-dict_path = "glove.840B.300d.pickle"
+dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
+#dict_path = "glove.840B.300d.pickle"
 # dict_path = "/lhome/zhengzhongliang/CLU_Projects/glove.840B.300d.pickle"
 
 with open(dict_path, 'rb') as input_file:
@@ -233,6 +234,8 @@ class Instance:
         self.knowledge_fact_text = knowledge_text
         self.target = target
         self.question_id = 0
+        self.model_confidence = 0
+
 
 
 class DyMemNet_Trainer():
@@ -247,7 +250,9 @@ class DyMemNet_Trainer():
         with open(train_path, 'rb') as input_file:
             self.instances_train = pickle.load(input_file)
 
-        shuffle(self.instances_train)
+        #shuffle(self.instances_train)
+        #confidence_score = [instance.model_confidence for instance in instances_train]
+        self.instances_train.sort(key=operator.attrgetter('model_confidence'))
 
         with open(dev_path, 'rb') as input_file:
             self.instances_dev = pickle.load(input_file)

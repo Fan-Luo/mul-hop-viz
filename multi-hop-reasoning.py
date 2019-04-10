@@ -126,6 +126,7 @@ def annotation_and_next_example():
     print('=================new question print================')
     print('DEBUG question text:',instance.question_text)
     print('DEBUG choice text:', instance.choices_text[answer_choice_id])
+    print('score:', instance.model_confidence)
 
     facts_text = list([])
     facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
