@@ -248,6 +248,7 @@ class DyMemNet_Trainer():
             self.instances_train = pickle.load(input_file)
 
         shuffle(self.instances_train)
+        self.instances_train = instances_train[:50]
 
         with open(dev_path, 'rb') as input_file:
             self.instances_dev = pickle.load(input_file)
