@@ -28,8 +28,8 @@ print('threads after set:',torch.get_num_threads())
 #dict_path = "/work/zhengzhongliang/DyMemNet_2019/GloveDict/glove.840B.300d.pickle"
 
 # dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
-# dict_path = "glove.840B.300d.pickle"
-dict_path = "/lhome/zhengzhongliang/CLU_Projects/glove.840B.300d.pickle"
+dict_path = "glove.840B.300d.pickle"
+# dict_path = "/lhome/zhengzhongliang/CLU_Projects/glove.840B.300d.pickle"
 
 with open(dict_path, 'rb') as input_file:
     glove_dict = pickle.load(input_file)

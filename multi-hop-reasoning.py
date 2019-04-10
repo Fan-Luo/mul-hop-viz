@@ -2,7 +2,6 @@ from flask import Flask, request
 from flask import render_template
 from flask.json import jsonify
 # from flask_cors import CORS
-# from serve import get_model_api
 import string, random
 from sklearn.manifold import TSNE
 import json
@@ -73,8 +72,6 @@ def fetch_first_example():
     
     instance = trainer.instances_train[0]
     answer_choice_id = np.argmax(np.array(instance.target))
-    # output, att_scores, question_text, candidate_text, facts_text = classifier.train_interactive_forward(instance, 0)
-    # output is the confidence of the correct answer
 
     print('=================================')
     print('DEBUG question text:',instance.question_text)
@@ -88,7 +85,7 @@ def fetch_first_example():
     web_response['output_score'] = 0
     web_response['fact_scores'] = 0
     web_response['question_text'] = " ".join(instance.question_text)
-    web_response['choice_text'] = instance.choices_text #'1.' + " ".join(instance.choices_text[0]) +'\n\n2.'+" ".join(instance.choices_text[1])+'\n\n3.'+" ".join(instance.choices_text[2])+'\n\n4.'+" ".join(instance.choices_text[3])
+    web_response['choice_text'] = instance.choices_text
     web_response['facts_text'] = facts_text
     web_response['answer_choice_id'] = str(answer_choice_id)
     
@@ -114,6 +111,7 @@ def annotation_and_next_example():
 
     for choice_id in np.arange(4):
         output, scores, question_text, choice_text, facts_text= trainer.train_interactive_forward(instance, choice_id, user_annotations)
+        # output is the confidence of the correct answer
     loss, predict = trainer.train_interactive_backward(answer_choice_id, user_annotations)   # back propagate error according to user annotated facts
     # caution: the current model only trained on the selected fact but not the actual choice, because currently we only show the question and the correct choice.
     
@@ -123,8 +121,7 @@ def annotation_and_next_example():
 
     instance = trainer.instances_train[instance_index]
     answer_choice_id = np.argmax(np.array(instance.target))
-    # output, att_scores, question_text, candidate_text, facts_text = classifier.train_interactive_forward(instance, 0)
-    # output is the confidence of the correct answer
+
 
     print('=================new question================')
     print('DEBUG question text:',instance.question_text)
@@ -138,7 +135,7 @@ def annotation_and_next_example():
     web_response['output_score'] = 0
     web_response['fact_scores'] = 0
     web_response['question_text'] = " ".join(instance.question_text)
-    web_response['choice_text'] = instance.choices_text #'1.' + " ".join(instance.choices_text[0]) +'\n\n2.'+" ".join(instance.choices_text[1])+'\n\n3.'+" ".join(instance.choices_text[2])+'\n\n4.'+" ".join(instance.choices_text[3])
+    web_response['choice_text'] = instance.choices_text
     web_response['facts_text'] = facts_text
     web_response['answer_choice_id'] = str(answer_choice_id)
     

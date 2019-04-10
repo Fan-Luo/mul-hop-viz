@@ -32,10 +32,10 @@
     <ol id="Candidate Answer" class="bottom-one"> </ol>
 
     <select id="facts" multiple="multiple" name="facts[]">
-  <!--     <option value='s1'>elem 1</option>
-      <option value='s2'>elem 2</option>
-      <option value='s3'>elem 3</option>
-   -->
+    <!--     <option value='s1'>elem 1</option>
+        <option value='s2'>elem 2</option>
+        <option value='s3'>elem 3</option>
+     -->
     </select>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
@@ -45,65 +45,6 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/js/jquery.multi-select.js'></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     <script type="text/javascript">
-
-    function annotation_and_next_example(input_annotation) {
-      $.ajax({
-          url: "http://127.0.0.1:5000/annotation_and_next_example",
-          method: 'POST',
-          contentType: 'application/json',
-          data: JSON.stringify(input_annotation),
-          success: function( data, textStatus, jQxhr ){
-              que_cand_facts = data;
-              document.getElementById("Question").textContent = que_cand_facts['question_text'];
-              var ol = document.getElementById("Candidate Answer");
-              if(ol.hasChildNodes()){  //clear candidate answers from previous question
-                ol.innerHTML = '';
-              }
-
-              for (var i = 0; i < 4; i++){
-                var li = document.createElement("li");
-                var spanNode = document.createElement("span");
-                spanNode.textContent = que_cand_facts['choice_text'][i];
-                if(i == parseInt(que_cand_facts['answer_choice_id'])){ 
-                  spanNode.setAttribute('style', 'background-color: yellow');
-                }
-                li.appendChild(spanNode);
-                ol.appendChild(li);
-              }
-           
-              var optionsAsString = "";
-              var num_facts = que_cand_facts['facts_text'].length;
-
-              for(var i = 0; i < num_facts; i++) { 
-                  //Read options reversely, since the facts are ranked in descending order by lucene score
-                  optionsAsString += "<option value=\'s" + i + "\'>" + que_cand_facts['facts_text'][num_facts-1-i] + "</option>";
-              }
-
-              $( 'select[id="facts"]' ).append( optionsAsString );
-              $('#facts').multiSelect('refresh');
-              $('#facts').multiSelect({keepOrder: true});
-              $(".ms-container").css({'width': '1300px', 'margin-top': '50px', 'margin-bottom': '50px'}); 
-              $("div.ms-selectable > ul.ms-list").css({'height': '350px', 'resize': 'both'});
-              $("div.ms-selection > ul.ms-list").css({'height': '350px', 'resize': 'both'});
-              $("div.ms-selection > ul.ms-list").sortable();
-              
-              var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
-                  return this.id;
-                }).get();
-
-              facts_id_nums = [];  // digital part of ids, such as 3613
-              $.each(facts_ids, function(index, element){
-                  facts_id_nums.push(element.split('-')[0]);
-              });
-          },
-          error: function( jqXhr, textStatus, errorThrown ){
-              $('#facts').html( "There was an error" );
-              console.log( errorThrown );
-          },
-          timeout: 3000
-      });
-    }
-
 
     $(document).ready(function() {
 
@@ -141,7 +82,7 @@
 
           $('#facts').multiSelect({
             selectableHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selectable supporting facts</div> <input type='text' class='search-input' autocomplete='off' placeholder='search'>",
-            selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div> <input type='text' autocomplete='off' placeholder='add a fact'>",
+            selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div> <input type='text' id='add_fact' autocomplete='off' placeholder='add a fact'>",
             keepOrder: true, 
 
             // Searchable
@@ -157,8 +98,6 @@
                   return false;
                 }
               });
-
-
             },
             afterSelect: function(){
               this.qs1.cache();
@@ -282,33 +221,95 @@
       //   });
       // });
 
+      // when press entry in $('#add_fact') selector, add the text in the input box as an added fact
+      $(document.body).on('keyup', $('#add_fact'), function(event) {
+        if(event.keyCode == 13) { // 13 = Enter Key
+          var add_text = $('#add_fact')[0].value;   //text input as an added fact
+          if(add_text){
+            ops = document.getElementById("facts").options;
+            last_value = ops[ops.length-1].value;                 //to add to the end
+            last_value_id = parseInt(last_value.split('s')[1]);   
+            add_value = 's' + (last_value_id + 1).toString();     //option value for the added fact
 
-      $('#add_fact').click(function() {
-
-        var add_text = $("div.ms-selection > input")["0"].value;   //text input as a new fact
-        if(add_text){
-          ops = document.getElementById("facts").options;
-          last_value = ops[ops.length-1].value;
-          last_value_id = parseInt(last_value.split('s')[1]);
-          add_value = 's' + (last_value_id + 1).toString();     //option value for the added fact
-
-          $('#facts').multiSelect('addOption', { value: add_value, text: add_text, index: last_value_id+1});
-          $('#facts').multiSelect('select', add_value);
-          $("div.ms-selection > input")["0"].value = "";
+            $('#facts').multiSelect('addOption', { value: add_value, text: add_text, index: last_value_id+1});
+            $('#facts').multiSelect('select', add_value);  //add to selected list
+            $('#add_fact')[0].value = "";   //clear the input box
+          }
         }
       });
-
+       
     });
+
+    function annotation_and_next_example(input_annotation) {
+      $.ajax({
+          url: "http://127.0.0.1:5000/annotation_and_next_example",
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(input_annotation),
+          success: function( data, textStatus, jQxhr ){
+              que_cand_facts = data;
+              document.getElementById("Question").textContent = que_cand_facts['question_text'];
+              
+              var ol = document.getElementById("Candidate Answer");
+              if(ol.hasChildNodes()){  //clear candidate answers from previous question
+                ol.innerHTML = '';
+              }
+
+              //display candidate answers in an ordered list
+              for (var i = 0; i < 4; i++){
+                var li = document.createElement("li");
+                var spanNode = document.createElement("span");
+                spanNode.textContent = que_cand_facts['choice_text'][i];
+                if(i == parseInt(que_cand_facts['answer_choice_id'])){ 
+                  spanNode.setAttribute('style', 'background-color: yellow');
+                }
+                li.appendChild(spanNode);
+                ol.appendChild(li);
+              }
+           
+              //the multi-select list view of facts
+              var optionsAsString = "";
+              var num_facts = que_cand_facts['facts_text'].length;
+
+              for(var i = 0; i < num_facts; i++) { //read facts as options of multi-select
+                  //Read options reversely, since the facts are ranked in descending order by lucene score
+                  optionsAsString += "<option value=\'s" + i + "\'>" + que_cand_facts['facts_text'][num_facts-1-i] + "</option>";
+              }
+
+              $( 'select[id="facts"]' ).append( optionsAsString );
+              $('#facts').multiSelect('refresh');
+              $('#facts').multiSelect({keepOrder: true});   // in the order of selection sequence 
+              $(".ms-container").css({'width': '1300px', 'margin-top': '50px', 'margin-bottom': '50px'}); 
+              $("div.ms-selectable > ul.ms-list").css({'height': '350px', 'resize': 'both'});  //resiziable
+              $("div.ms-selection > ul.ms-list").css({'height': '350px', 'resize': 'both'});   //resiziable
+              $("div.ms-selection > ul.ms-list").sortable();   //re-orderable
+              
+              //original facts' ids
+              var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
+                  return this.id;
+                }).get();
+
+              facts_id_nums = [];  // digital part of ids, such as 3613
+              $.each(facts_ids, function(index, element){
+                  facts_id_nums.push(element.split('-')[0]);
+              });
+          },
+          error: function( jqXhr, textStatus, errorThrown ){
+              $('#facts').html( "There was an error" );
+              console.log( errorThrown );
+          },
+          timeout: 3000
+      });
+    }
 
 
     </script>
-
     <button id="next_example">next</button>  
     <button id="i_do_not_know" style="margin-left: 20px">skip</button>  
-    <button id="add_fact" class = "left-sapce">add fact</button>
+    <!-- <button id="add_fact" class = "left-sapce">add fact</button> -->
   <!--   <button id="submit">submit</button>  
     <button id="test">test</button>   -->
-</div>
+  </div>
 </body>
 
 </html>

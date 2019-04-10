@@ -3,4 +3,4 @@ __pycache__
 static/knowledge_fact*
 static/*.js
 glove.840B.300d.pickle
-data_0PercentNoise/MemNet_TrainQuestions_Pos_Annotated.pickle
+*.pickle
