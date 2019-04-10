@@ -21,20 +21,18 @@
 
 <body>
 
-  <div id = "main" class="main-class" style="margin-left:20px;">
+  <div id = "main" class="main-class" style="margin-left:20px; margin-bottom:20px;">
 
-    <h1> Visualization for Multi-hop Reasoning </h1> 
+    <h1 style="margin-bottom:30px;"> Visualization for Multi-hop Reasoning </h1> 
 
-    <h3> Question: </h3> 
+    <h4> Question: </h4> 
     <div id="Question"> </div>
 
-    <h3> Candidate Answer: </h3> 
+    <h4> Candidate Answer: </h4> 
     <ol id="Candidate Answer" class="bottom-one"> </ol>
 
     <select id="facts" multiple="multiple" name="facts[]">
     <!--     <option value='s1'>elem 1</option>
-        <option value='s2'>elem 2</option>
-        <option value='s3'>elem 3</option>
      -->
     </select>
 
@@ -107,9 +105,9 @@
             }
           });
 
-          $(".ms-container").css({'width': '1300px', 'margin-top': '50px', 'margin-bottom': '50px'}); 
-          $("div.ms-selectable > ul.ms-list").css({'height': '350px', 'resize': 'both'});
-          $("div.ms-selection > ul.ms-list").css({'height': '350px', 'resize': 'both'});
+          $(".ms-container").css({'width': '1300px', 'margin-top': '30px', 'margin-bottom': '10px'}); 
+          $("div.ms-selectable > ul.ms-list").css({'height': '300px', 'resize': 'both'});
+          $("div.ms-selection > ul.ms-list").css({'height': '300px', 'resize': 'both'});
           $("div.ms-selection > ul.ms-list").sortable();
                 
           var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
@@ -280,8 +278,8 @@
               $('#facts').multiSelect('refresh');
               $('#facts').multiSelect({keepOrder: true});   // in the order of selection sequence 
               $(".ms-container").css({'width': '1300px', 'margin-top': '50px', 'margin-bottom': '50px'}); 
-              $("div.ms-selectable > ul.ms-list").css({'height': '350px', 'resize': 'both'});  //resiziable
-              $("div.ms-selection > ul.ms-list").css({'height': '350px', 'resize': 'both'});   //resiziable
+              $("div.ms-selectable > ul.ms-list").css({'height': '300px', 'resize': 'both'});  //resiziable
+              $("div.ms-selection > ul.ms-list").css({'height': '300px', 'resize': 'both'});   //resiziable
               $("div.ms-selection > ul.ms-list").sortable();   //re-orderable
               
               //original facts' ids
