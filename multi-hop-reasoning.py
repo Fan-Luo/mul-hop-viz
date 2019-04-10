@@ -79,20 +79,20 @@ def fetch_first_example():
     print('=================================')
     print('DEBUG question text:',instance.question_text)
     print('DEBUG correct choice text:', instance.choices_text[answer_choice_id])
-
-    for choice_id in np.arange(4):
-        output, scores, question_text, choice_text, facts_text= trainer.train_interactive_forward(instance, choice_id)
-        
-        if choice_id==answer_choice_id:
-            web_response = {}
-            web_response['output_score'] = output
-            web_response['fact_scores'] = scores
-            web_response['question_text'] = question_text
-            web_response['choice_text'] = instance.choices_text #'1.' + " ".join(instance.choices_text[0]) +'\n\n2.'+" ".join(instance.choices_text[1])+'\n\n3.'+" ".join(instance.choices_text[2])+'\n\n4.'+" ".join(instance.choices_text[3])
-            web_response['facts_text'] = facts_text
-            web_response['answer_choice_id'] = str(answer_choice_id)
-
-    response = jsonify(web_response)     
+    
+    facts_text = list([])
+    facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
+    facts_text.append(" ".join(instance.science_fact_text))
+    
+    web_response = {}
+    web_response['output_score'] = 0
+    web_response['fact_scores'] = 0
+    web_response['question_text'] = " ".join(instance.question_text)
+    web_response['choice_text'] = instance.choices_text #'1.' + " ".join(instance.choices_text[0]) +'\n\n2.'+" ".join(instance.choices_text[1])+'\n\n3.'+" ".join(instance.choices_text[2])+'\n\n4.'+" ".join(instance.choices_text[3])
+    web_response['facts_text'] = facts_text
+    web_response['answer_choice_id'] = str(answer_choice_id)
+    
+    response = jsonify(web_response)
     return response
 
 
@@ -105,14 +105,15 @@ def annotation_and_next_example():
     answer_choice_id = np.argmax(np.array(instance.target))
     
     with open('saved_annotations/'+annotation_file_name+'.pickle', 'ab') as f:
-        pickle.dump(Annotation(instance.question_id, user_annotations[0], user_annotations[1]), f)
+        pickle.dump({"question_id":instance.question_id, "annotation":user_annotations[0], "new_facts":user_annotations[1]}, f)
         #pickle.dump(1, f)
 
     print('=================old question================')
     print('DEBUG question text:',instance.question_text)
     print('DEBUG choice text:', instance.choices_text[answer_choice_id])
 
-    
+    for choice_id in np.arange(4):
+        output, scores, question_text, choice_text, facts_text= trainer.train_interactive_forward(instance, choice_id, user_annotations)
     loss, predict = trainer.train_interactive_backward(answer_choice_id, user_annotations)   # back propagate error according to user annotated facts
     # caution: the current model only trained on the selected fact but not the actual choice, because currently we only show the question and the correct choice.
     
@@ -129,19 +130,19 @@ def annotation_and_next_example():
     print('DEBUG question text:',instance.question_text)
     print('DEBUG choice text:', instance.choices_text[answer_choice_id])
 
-    for choice_id in np.arange(4):
-        output, scores, question_text, choice_text, facts_text= trainer.train_interactive_forward(instance, choice_id)
-        
-        if choice_id==answer_choice_id:
-            web_response = {}
-            web_response['output_score'] = output
-            web_response['fact_scores'] = scores
-            web_response['question_text'] = question_text
-            web_response['choice_text'] =  instance.choices_text #'1.' + " ".join(instance.choices_text[0]) +'\n\n2.'+" ".join(instance.choices_text[1])+'\n\n3.'+" ".join(instance.choices_text[2])+'\n\n4.'+" ".join(instance.choices_text[3])
-            web_response['facts_text'] = facts_text
-            web_response['answer_choice_id'] = str(answer_choice_id)
-
-    response = jsonify(web_response)     
+    facts_text = list([])
+    facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
+    facts_text.append(" ".join(instance.science_fact_text))
+    
+    web_response = {}
+    web_response['output_score'] = 0
+    web_response['fact_scores'] = 0
+    web_response['question_text'] = " ".join(instance.question_text)
+    web_response['choice_text'] = instance.choices_text #'1.' + " ".join(instance.choices_text[0]) +'\n\n2.'+" ".join(instance.choices_text[1])+'\n\n3.'+" ".join(instance.choices_text[2])+'\n\n4.'+" ".join(instance.choices_text[3])
+    web_response['facts_text'] = facts_text
+    web_response['answer_choice_id'] = str(answer_choice_id)
+    
+    response = jsonify(web_response)
     return response
 
 # @app.route("/submit", methods=['GET'])

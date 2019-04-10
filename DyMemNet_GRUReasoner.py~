@@ -34,12 +34,6 @@ dict_path = "/lhome/zhengzhongliang/CLU_Projects/glove.840B.300d.pickle"
 with open(dict_path, 'rb') as input_file:
     glove_dict = pickle.load(input_file)
 
-class Annotation():
-    def __init__(self, question_id, annotations, new_facts):
-        self.question_id = question_id
-        self.annotations = annotations
-        self.new_facts = new_facts
-
 class InputModule(nn.Module):
     def __init__(self, hidden_size=100):
         super(InputModule,self).__init__()
@@ -109,7 +103,7 @@ class Classifier(nn.Module):
         self.n_hop = n_hop
 
 
-    def forward(self, question_text, candidate_text, sci_text, knowledge_text):
+    def forward(self, question_text, candidate_text, sci_text, knowledge_text, user_annotations):
         # get encoded question, choice and knowledge base
         question_vec = self.inputModule.forward(question_text)
         candidate_vec = \
@@ -121,6 +115,10 @@ class Classifier(nn.Module):
         for single_fact in knowledge_text[-10:]:
             knowledge_fact.append(self.inputModule.forward(single_fact))
         knowledge_fact.append(self.inputModule.forward(sci_text))
+        
+        if len(user_annotations[1])>0:
+            for single_fact in user_annotations[1]:
+                knowledge_fact.append(self.inputModule.forward(single_fact.split(' ')))
         # elif data_noise_percent=='30':
         #     knowledge_fact = list([])
         #     if len(knowledge_text)>0:
@@ -191,11 +189,14 @@ class Classifier(nn.Module):
     def get_loss_interactive(self, outputs, targets, att_score, annotated_sen):
         #prediction_loss = self.criterion(output, targets.view(1))
 
-
+        annotated_sen[0] = [10-annotated_sen[0][i] for i in range(len(annotated_sen[0]))]
         #print("What the hell is the output!", outputs)
         #print("What the hell is the output!", outputs.size())
-        print('length of att score:', len(att_score))
-        print('length of att score 0:', len(att_score[0]))
+        
+        n_facts = 11+len(annotated_sen[1])
+        if len(annotated_sen[1])>0:
+            for i, _ in enumerate(annotated_sen[1]):
+                annotated_sen[0].append(11+i)
 
         annotated_sen_permu = list(itertools.permutations(annotated_sen[0]))
 
@@ -206,12 +207,13 @@ class Classifier(nn.Module):
           selection_loss+=self.criterion(outputs.view(1,4), torch.tensor(targets).view(1))
           
           for hop in np.arange(len(annotated_sen_)):
-              adjusted_annotation = 10-annotated_sen_[hop]
-              selection_loss+=self.criterion(att_score[hop].view(1,11), torch.tensor(adjusted_annotation).view(1))
+              selection_loss+=self.criterion(att_score[hop].view(1,11+len(annotated_sen[1])), torch.tensor(annotated_sen_[0][hop]).view(1))
           selection_loss_torch_list.append(selection_loss)
           selection_loss_python_list.append(selection_loss.detach().item())
         
-        
+        print('length of att score:', len(att_score))
+        print('length of att score 0:', len(att_score[0]))
+        print('length of annotate:', len(annotated_sen[0]))
         
         selected_index = selection_loss_python_list.index(min(selection_loss_python_list))
         _, preds=torch.max(outputs.view(1,4), dim=1)
@@ -220,8 +222,6 @@ class Classifier(nn.Module):
         #return prediction_loss+selection_loss, pred_ids
         
         return selection_loss_torch_list[selected_index], preds
-
-
 
 class Instance:
     def __init__(self, target,  question_text, choices_text, fact_text, knowledge_text):
@@ -316,7 +316,7 @@ class DyMemNet_Trainer():
             model_results[epoch,0] = model_results[epoch,0]/len(instances_train)
             model_results[epoch, 1] = correct_count / 1.0 / len(instances_train)
 
-    def train_interactive_forward(self, instance, choice_id):
+    def train_interactive_forward(self, instance, choice_id, user_annotations):
 
         print("==========train interactive===========")
         self.optim.zero_grad()
@@ -325,7 +325,7 @@ class DyMemNet_Trainer():
         facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
         facts_text.append(" ".join(instance.science_fact_text))
 
-        output, att_scores = self.classifier(instance.question_text, instance.choices_text[choice_id], instance.science_fact_text, instance.knowledge_fact_text)
+        output, att_scores = self.classifier(instance.question_text, instance.choices_text[choice_id], instance.science_fact_text, instance.knowledge_fact_text, user_annotations)
         
 
         self.outputs[choice_id] = output
