@@ -11,6 +11,8 @@ import datetime
 import os
 import getpass
 import datetime
+partition = int(sys.argv[1])
+
 
 username = getpass.getuser()
 now = datetime.datetime.now()
@@ -119,29 +121,37 @@ def annotation_and_next_example():
     trainer.training_instance_counter+=1
     instance_index = trainer.training_instance_counter
 
-    instance = trainer.instances_train[instance_index]
-    answer_choice_id = np.argmax(np.array(instance.target))
+    #if instance_index<50*(partition+1):
+    if instance_index<50:
+
+        instance = trainer.instances_train[instance_index]
+        answer_choice_id = np.argmax(np.array(instance.target))
 
 
-    print('=================new question print================')
-    print('DEBUG question text:',instance.question_text)
-    print('DEBUG choice text:', instance.choices_text[answer_choice_id])
-    print('score:', instance.model_confidence)
+        print('=================new question print================')
+        print('DEBUG question text:',instance.question_text)
+        print('DEBUG choice text:', instance.choices_text[answer_choice_id])
+        print('score:', instance.model_confidence)
 
-    facts_text = list([])
-    facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
-    facts_text.append(" ".join(instance.science_fact_text))
-    
-    web_response = {}
-    web_response['output_score'] = 0
-    web_response['fact_scores'] = 0
-    web_response['question_text'] = " ".join(instance.question_text)
-    web_response['choice_text'] = instance.choices_text
-    web_response['facts_text'] = facts_text
-    web_response['answer_choice_id'] = str(answer_choice_id)
-    
-    response = jsonify(web_response)
+        facts_text = list([])
+        facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
+        facts_text.append(" ".join(instance.science_fact_text))
+        
+        web_response = {}
+        web_response['output_score'] = 0
+        web_response['fact_scores'] = 0
+        web_response['question_text'] = " ".join(instance.question_text)
+        web_response['choice_text'] = instance.choices_text
+        web_response['facts_text'] = facts_text
+        web_response['answer_choice_id'] = str(answer_choice_id)
+        
+        response = jsonify(web_response)
+
+    else:
+        trainer.test()
+
     return response
+
 
 # @app.route("/submit", methods=['GET'])
 # def submit():
@@ -204,7 +214,7 @@ def annotation_and_next_example():
 if (__name__ == '__main__'):
 
     global trainer
-    trainer = DyMemNet_Trainer(load_model=True)
+    trainer = DyMemNet_Trainer(load_model=True, partition=partition)
     app.run(debug = True)
     
 

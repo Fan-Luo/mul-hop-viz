@@ -12,6 +12,7 @@ import itertools
 import operator
 
 
+
 print("pytorch version:", torch.__version__)
 
 print('threads before set:',torch.get_num_threads())
@@ -239,7 +240,7 @@ class Instance:
 
 
 class DyMemNet_Trainer():
-    def __init__(self, load_model=True, train_path = 'data_0PercentNoise/MemNet_TrainQuestions_Pos.pickle', dev_path = 'data_0PercentNoise/MemNet_DevQuestions_Pos.pickle'):
+    def __init__(self, load_model=True, train_path = 'data_0PercentNoise/MemNet_TrainQuestions_Pos.pickle', dev_path = 'data_0PercentNoise/MemNet_DevQuestions_Pos.pickle', partition=0):
         if load_model:
             self.classifier = torch.load('saved_model/MemNet_Trained_Epoch_0')
             self.classifier.n_hop = 4
@@ -253,6 +254,7 @@ class DyMemNet_Trainer():
         #shuffle(self.instances_train)
         #confidence_score = [instance.model_confidence for instance in instances_train]
         self.instances_train.sort(key=operator.attrgetter('model_confidence'))
+        self.instances_train=self.instances_train[partition*50:(partition+1)*50]
 
         with open(dev_path, 'rb') as input_file:
             self.instances_dev = pickle.load(input_file)
@@ -367,7 +369,7 @@ class DyMemNet_Trainer():
             outputs = {}
             for choice_id in np.arange(4):
                 #if data_noise_percent=='0':
-                outputs[choice_id],_ = self.classifier(instance.question_text, instance.choices_text[choice_id], instance.science_fact_text, instance.knowledge_fact_text)
+                outputs[choice_id],_ = self.classifier(instance.question_text, instance.choices_text[choice_id], instance.science_fact_text, instance.knowledge_fact_text, [[],[]])
                 #elif data_noise_percent=='30':
                 #    outputs[choice_id] = self.classifier(instance.question_text, instance.choices_text[choice_id], instance.science_fact_text[choice_id], instance.knowledge_fact_text[choice_id])
 
