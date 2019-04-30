@@ -11,8 +11,6 @@ import datetime
 import os
 import getpass
 import datetime
-partition = int(sys.argv[1])
-
 
 username = getpass.getuser()
 now = datetime.datetime.now()
@@ -57,10 +55,15 @@ def tsne():
     return render_template("user.html", X_embedded = X_embedded.tolist())
     #return render_template("user.html", X_embedded = np.array2string(X_embedded, separator=', '))
 
-@app.route("/annotation")
-def annotation():
+# @app.route("/annotation")
+# def annotation():
 
-    return render_template("annotation.html")
+#     return render_template("annotation.html")
+
+@app.route("/forceDirected")
+def forceDirected():
+
+    return render_template("forceDirected.html")
 
 
 @app.route("/fetch_first_example", methods=['GET'])
@@ -90,9 +93,13 @@ def fetch_first_example():
     web_response['choice_text'] = instance.choices_text
     web_response['facts_text'] = facts_text
     web_response['answer_choice_id'] = str(answer_choice_id)
-    
-    response = jsonify(web_response)
-    return response
+
+
+    response0 = jsonify(web_response)
+    response1 = jsonify(glove_dict)
+    # print(web_response)
+
+    return (response0, response1)
 
 
 @app.route("/annotation_and_next_example", methods=['POST'])
@@ -121,37 +128,28 @@ def annotation_and_next_example():
     trainer.training_instance_counter+=1
     instance_index = trainer.training_instance_counter
 
-    #if instance_index<50*(partition+1):
-    if instance_index<50:
-
-        instance = trainer.instances_train[instance_index]
-        answer_choice_id = np.argmax(np.array(instance.target))
+    instance = trainer.instances_train[instance_index]
+    answer_choice_id = np.argmax(np.array(instance.target))
 
 
-        print('=================new question print================')
-        print('DEBUG question text:',instance.question_text)
-        print('DEBUG choice text:', instance.choices_text[answer_choice_id])
-        print('score:', instance.model_confidence)
+    print('=================new question print================')
+    print('DEBUG question text:',instance.question_text)
+    print('DEBUG choice text:', instance.choices_text[answer_choice_id])
 
-        facts_text = list([])
-        facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
-        facts_text.append(" ".join(instance.science_fact_text))
-        
-        web_response = {}
-        web_response['output_score'] = 0
-        web_response['fact_scores'] = 0
-        web_response['question_text'] = " ".join(instance.question_text)
-        web_response['choice_text'] = instance.choices_text
-        web_response['facts_text'] = facts_text
-        web_response['answer_choice_id'] = str(answer_choice_id)
-        
-        response = jsonify(web_response)
-
-    else:
-        trainer.test()
-
+    facts_text = list([])
+    facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
+    facts_text.append(" ".join(instance.science_fact_text))
+    
+    web_response = {}
+    web_response['output_score'] = 0
+    web_response['fact_scores'] = 0
+    web_response['question_text'] = " ".join(instance.question_text)
+    web_response['choice_text'] = instance.choices_text
+    web_response['facts_text'] = facts_text
+    web_response['answer_choice_id'] = str(answer_choice_id)
+    
+    response = jsonify(web_response)
     return response
-
 
 # @app.route("/submit", methods=['GET'])
 # def submit():
@@ -213,8 +211,16 @@ def annotation_and_next_example():
  
 if (__name__ == '__main__'):
 
+    dict_path = "glove.840B.300d.pickle"
+    with open(dict_path, 'rb') as embed_file:
+        glove = pickle.load(embed_file)
+
+    global glove_dict
+    for key,val in glove.items():
+        glove_dict[key] = val.tolist()
+    
     global trainer
-    trainer = DyMemNet_Trainer(load_model=True, partition=partition)
+    trainer = DyMemNet_Trainer(load_model=True)
     app.run(debug = True)
     
 

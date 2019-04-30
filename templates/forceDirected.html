@@ -1,0 +1,433 @@
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  
+  <style>
+    .left-sapce 
+      { margin-left: 600px; }
+    .span-color{
+      background-color: green; 
+    }
+
+    .links line {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+
+    .nodes circle {
+      stroke: #fff;
+      stroke-width: 1.5px;
+    }
+
+    text {
+      font-family: sans-serif;
+      font-size: 10px;
+    }
+
+  </style>
+
+  <title>Viz for Multi-hop Reasoning</title>
+
+
+  <!-- Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/css/multi-select.css">
+</head>
+
+<body>
+
+  <div id = "main" class="main-class" style="margin-left:20px; margin-bottom:10px;">
+
+    <h1 style="margin-bottom:30px;"> Visualization for Multi-hop Reasoning </h1> 
+
+    <h4> Question: </h4> 
+    <div id="Question"> </div>
+
+    <h4> Candidate Answer: </h4> 
+    <ol id="Candidate Answer" style="margin-bottom:10px;"> </ol>
+
+<!--     <select id="facts" multiple="multiple" name="facts[]">
+    </select> -->
+    <svg id="graph" width="960" height="600"></svg>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.1/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.quicksearch/2.3.1/jquery.quicksearch.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/multi-select/0.9.12/js/jquery.multi-select.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.9.0/math.js"></script>
+    <script type="text/javascript">
+
+    $(document).ready(function() {
+
+      // $.getJSON( "static/fan_sample.json", function( j ) {
+        // que_cand_facts = j;
+
+      $.ajax({
+        url: "http://127.0.0.1:5000/fetch_first_example",
+        method: 'GET',
+        contentType: 'application/json',
+        success: function(data, textStatus, jQxhr){
+          que_cand_facts = data[0];
+          glove_dict = data[1];
+          document.getElementById("Question").textContent = que_cand_facts['question_text'];
+          var ol = document.getElementById("Candidate Answer");
+          for (var i = 0; i < 4; i++){
+            var li = document.createElement("li");
+            var spanNode = document.createElement("span");
+            spanNode.textContent = que_cand_facts['choice_text'][i];
+            if(i == parseInt(que_cand_facts['answer_choice_id'])){ 
+              spanNode.setAttribute('style', 'background-color: yellow');
+            }
+            li.appendChild(spanNode);
+            ol.appendChild(li);
+          }
+
+          //compute embeddings
+          // var pickle = require('pickle');
+          // pickle.loads("glove.840B.300d.pickle", function(glove_dict) {
+          //   console.log("original:", glove_dict.length);
+          // });
+           
+          // glove_dict = que_cand_facts['glove_dict'];
+          var facts = [];  
+          var facts_embedding = [];   
+          var num_facts = que_cand_facts['facts_text'].length;
+
+          for(var i = 0; i < num_facts; i++) { 
+            //Read options reversely, since the facts are ranked in descending order by lucene score
+            var fact = que_cand_facts['facts_text'][num_facts-1-i];
+            var fact_embed = avg_embedding(fact);
+            facts_embedding.push(fact_embed);
+
+            var f = {};
+            f["id"] = fact;
+            f["embed"] = fact_embed;
+            facts.push(f);
+          }
+
+          //compute the similarity as the value of the edges
+          var edges = [];
+          for(var i = 0; i < num_facts; i++) { 
+            for(var j = i+1; j < num_facts; j++) { 
+              var similarity = cosineSimilarity(facts_embedding[i], facts_embedding[j]);
+              if(similarity > 0.3){
+                var edge = {};
+                edge["source"] = facts[i].id;
+                edge["target"] = facts[ij].id; 
+                edge["value"] = similarity;
+                edges.push(edge);
+              }
+            }
+          }
+
+          var svg = d3.select("svg[id='graph']"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+          var simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(function(d) { return d.id; }))
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+          var link = svg.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(edges)
+            .enter().append("line")
+            .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+          var node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("g")
+            .data(facts)
+            .enter().append("g")
+
+          var circles = node.append("circle")
+            .attr("r", 5)
+            .call(d3.drag()
+              .on("start", dragstarted)
+              .on("drag", dragged)
+              .on("end", dragended));
+
+          node.append("title")
+            .text(function(d) { return d.id; });
+
+          simulation
+            .nodes(facts)
+            .on("tick", ticked);
+
+          simulation.force("link")
+            .links(edges);
+
+          function ticked() {
+            link
+                .attr("x1", function(d) { return d.source.x; })
+                .attr("y1", function(d) { return d.source.y; })
+                .attr("x2", function(d) { return d.target.x; })
+                .attr("y2", function(d) { return d.target.y; });
+
+            node
+                .attr("transform", function(d) {
+                  return "translate(" + d.x + "," + d.y + ")";
+                })
+          }
+          // $( 'select[id="facts"]' ).append( optionsAsString );
+
+          // $('#facts').multiSelect({
+          //   selectableHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selectable supporting facts</div> <input type='text' class='search-input' autocomplete='off' placeholder='search'>",
+          //   selectionHeader: "<div style=\"font-weight: bold\" class='custom-header'>Selected supporting facts</div> <input type='text' id='add_fact' autocomplete='off' placeholder='add a fact'>",
+          //   keepOrder: true, 
+
+          //   // Searchable
+          //   afterInit: function(ms){
+          //     var that = this,
+          //         $selectableSearch = that.$selectableUl.prev(),
+          //         selectableSearchString = '#'+that.$container.attr('id')+' .ms-elem-selectable:not(.ms-selected)';
+
+          //     that.qs1 = $selectableSearch.quicksearch(selectableSearchString)
+          //     .on('keydown', function(e){
+          //       if (e.which === 40){
+          //         that.$selectableUl.focus();
+          //         return false;
+          //       }
+          //     });
+          //   },
+          //   afterSelect: function(){
+          //     this.qs1.cache();
+          //   },
+          //   afterDeselect: function(){
+          //     this.qs1.cache();
+          //   }
+          // });
+
+          // $(".ms-container").css({'width': '1200px', 'margin-top': '30px', 'margin-bottom': '10px'}); 
+          // $("div.ms-selectable > ul.ms-list").css({'height': '300px', 'resize': 'both'});
+          // $("div.ms-selection > ul.ms-list").css({'height': '300px', 'resize': 'both'});
+          // $("div.ms-selection > ul.ms-list").sortable();
+                
+          // var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
+          //     return this.id;
+          //   }).get();
+
+          // facts_id_nums = [];  // digital part of ids, such as 3613
+          // $.each(facts_ids, function(index, element){
+          //     facts_id_nums.push(element.split('-')[0]);
+          // });
+   
+        },
+        error: function( jqXhr, textStatus, errorThrown ){
+            $('#facts').html( "There was an error" );
+            console.log( errorThrown );
+        }
+
+      });
+
+
+      //post selected_facts_indexes to server, and get next example
+      $('#next_example').click(function() {
+        
+        // var selected_facts_ids = $(".ms-selection").find(".ms-selected").map(function() {
+        //       return this.id;
+        //     }).get();     //can be re-ordered by dragging
+        
+        // var selected_facts_id_nums = [];
+        // $.each(selected_facts_ids, function(index, element){
+        //     selected_facts_id_nums.push(element.split('-')[0]);
+        // });
+   
+
+        // var selected_facts_indexes = [];
+        // var add_facts = [];
+        // for(var i=0; i<selected_facts_id_nums.length;i++){  
+        //   //in the order of selected facts (after re-ordering)
+        //   var selected_id = facts_id_nums.indexOf( selected_facts_id_nums[i] );
+        //   if (selected_id == -1 ){    //not in the original options
+        //     add_facts.push( $('#' + selected_facts_ids[i]).text() );
+        //   }
+        //   else{
+        //     selected_facts_indexes.push(selected_id);
+        //   }
+        // }
+
+        // var annotations = [];
+        // annotations.push(selected_facts_indexes);
+        // annotations.push(add_facts);
+        // annotation_and_next_example(annotations);   
+
+        // $( 'select[id="facts"]' )
+        // .empty();
+
+        // que_cand_facts = "";
+
+        return false;
+      });
+
+      $('#i_do_not_know').click(function() {
+   
+        var annotations = [[],[]];
+   
+        annotation_and_next_example(annotations);   
+
+        // $( 'select[id="facts"]' )
+        // .empty();
+
+        que_cand_facts = "";
+
+        return false;
+      });
+
+ 
+
+      // // when press entry in $('#add_fact') selector, add the text in the input box as an added fact
+      // $(document.body).on('keyup', $('#add_fact'), function(event) {
+      //   if(event.keyCode == 13) { // 13 = Enter Key
+      //     var add_text = $('#add_fact')[0].value;   //text input as an added fact
+      //     if(add_text){
+      //       ops = document.getElementById("facts").options;
+      //       last_value = ops[ops.length-1].value;                 //to add to the end
+      //       last_value_id = parseInt(last_value.split('s')[1]);   
+      //       add_value = 's' + (last_value_id + 1).toString();     //option value for the added fact
+
+      //       // $('#facts').multiSelect('addOption', { value: add_value, text: add_text, index: last_value_id+1});
+      //       // $('#facts').multiSelect('select', add_value);  //add to selected list
+      //       // $('#add_fact')[0].value = "";   //clear the input box
+      //     }
+      //   }
+      // });
+       
+    });
+
+    function annotation_and_next_example(input_annotation) {
+      $.ajax({
+          url: "http://127.0.0.1:5000/annotation_and_next_example",
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(input_annotation),
+          success: function( data, textStatus, jQxhr ){
+              que_cand_facts = data;
+              document.getElementById("Question").textContent = que_cand_facts['question_text'];
+              
+              var ol = document.getElementById("Candidate Answer");
+              if(ol.hasChildNodes()){  //clear candidate answers from previous question
+                ol.innerHTML = '';
+              }
+
+              //display candidate answers in an ordered list
+              for (var i = 0; i < 4; i++){
+                var li = document.createElement("li");
+                var spanNode = document.createElement("span");
+                spanNode.textContent = que_cand_facts['choice_text'][i];
+                if(i == parseInt(que_cand_facts['answer_choice_id'])){ 
+                  spanNode.setAttribute('style', 'background-color: yellow');
+                }
+                li.appendChild(spanNode);
+                ol.appendChild(li);
+              }
+           
+              // //the multi-select list view of facts
+              // var optionsAsString = "";
+              // var num_facts = que_cand_facts['facts_text'].length;
+
+              // for(var i = 0; i < num_facts; i++) { //read facts as options of multi-select
+              //     //Read options reversely, since the facts are ranked in descending order by lucene score
+              //     optionsAsString += "<option value=\'s" + i + "\'>" + que_cand_facts['facts_text'][num_facts-1-i] + "</option>";
+              // }
+
+              // $( 'select[id="facts"]' ).append( optionsAsString );
+              // $('#facts').multiSelect('refresh');
+              // $('#facts').multiSelect({keepOrder: true});   // in the order of selection sequence 
+              // $(".ms-container").css({'width': '1200px', 'margin-top': '50px', 'margin-bottom': '50px'}); 
+              // $("div.ms-selectable > ul.ms-list").css({'height': '300px', 'resize': 'both'});  //resiziable
+              // $("div.ms-selection > ul.ms-list").css({'height': '300px', 'resize': 'both'});   //resiziable
+              // $("div.ms-selection > ul.ms-list").sortable();   //re-orderable
+              
+              // //original facts' ids
+              // var facts_ids = $("div.ms-selectable > ul.ms-list > li.ms-elem-selectable").map(function() {
+              //     return this.id;
+              //   }).get();
+
+              // facts_id_nums = [];  // digital part of ids, such as 3613
+              // $.each(facts_ids, function(index, element){
+              //     facts_id_nums.push(element.split('-')[0]);
+              // });
+          },
+          error: function( jqXhr, textStatus, errorThrown ){
+              $('#facts').html( "There was an error" );
+              console.log( errorThrown );
+          },
+          timeout: 3000
+      });
+    }
+
+    function dragstarted(d) {
+      if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(d) {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+    }
+
+    function dragended(d) {
+      if (!d3.event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+
+    function avg_embedding(sentence){
+        var embed_vecs = [];
+        var unk_embed = new Array(300);
+        unk_embed.fill(0.1);   //all 0.1 for 300 dimensions
+
+        for (w in sentence){
+          if(glove_dict.includes(sentence[w]) >= 0){
+            embed_vecs.push(glove_dict[sentence[w]]);  // sentence[w] is the w-th word in the sentence
+          }
+          else{
+            embed_vecs.push(unk_embed);    
+          }
+        }
+
+        sentence_embedding = math.mean(embed_vecs, 0);
+     
+        return sentence_embedding;
+    }
+
+
+    function vecDotProduct(vecA, vecB) {
+      var product = 0;
+      for (var i = 0; i < vecA.length; i++) {
+        product += vecA[i] * vecB[i];
+      }
+      return product;
+    }
+
+    function vecMagnitude(vec) {
+      var sum = 0;
+      for (var i = 0; i < vec.length; i++) {
+        sum += vec[i] * vec[i];
+      }
+      return Math.sqrt(sum);
+    }
+
+    function cosineSimilarity(vecA, vecB) {
+      return vecDotProduct(vecA, vecB) / (vecMagnitude(vecA) * vecMagnitude(vecB));
+    }
+
+
+    </script>
+    <button id="next_example">next</button>  
+    <button id="i_do_not_know" style="margin-left: 20px">skip</button>  
+
+  </div>
+</body>
+
+</html>
