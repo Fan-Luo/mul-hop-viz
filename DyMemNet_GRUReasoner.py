@@ -395,6 +395,7 @@ class DyMemNet_Trainer():
 
 
 
+
 #save_folder_path = arch_name+'_noise_'+data_noise_percent+'_sciFact_'+n_sci_fact+'_knowFact_'+n_know_fact
 
     

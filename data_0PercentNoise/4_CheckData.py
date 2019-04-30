@@ -21,4 +21,5 @@ for instance in instances_train:
     print(instance.choices_text)
     print(instance.science_fact_text)
     print(instance.knowledge_fact_text)
+    print(len(instance.knowledge_fact_text))
     input('press enter to continue')

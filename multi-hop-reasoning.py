@@ -20,6 +20,17 @@ annotation_file_name = username+'_'+str(now)[:10]+'_'+str(now)[11:13]+str(now)[1
 app = Flask(__name__)
 # CORS(app) # needed for cross-domain requests, allow everything by default
 # model_api = get_model_api()
+def avg_embedding(sentence):
+    input_vecs = list([])
+    for word in sentence.split():
+        if word in glove_dict:
+            input_vecs.append(glove_dict[word])
+        else:
+            input_vecs.append(np.ones(300)*0.1)
+    input_vecs_array = np.array(input_vecs)
+    sentence_embedding = np.mean(input_vecs_array, dim=0)
+    return sentence_embedding
+
 
 class Annotation():
   def __init__(self, question_id, annotations, new_facts):
@@ -92,6 +103,7 @@ def fetch_first_example():
     web_response['question_text'] = " ".join(instance.question_text)
     web_response['choice_text'] = instance.choices_text
     web_response['facts_text'] = facts_text
+    web_response['facts_embedding'] = [avg_embedding(fact_text) for fact_text in facts_text]
     web_response['answer_choice_id'] = str(answer_choice_id)
 
 
@@ -146,6 +158,7 @@ def annotation_and_next_example():
     web_response['question_text'] = " ".join(instance.question_text)
     web_response['choice_text'] = instance.choices_text
     web_response['facts_text'] = facts_text
+    web_response['facts_embedding'] = [avg_embedding(fact_text) for fact_text in facts_text]
     web_response['answer_choice_id'] = str(answer_choice_id)
     
     response = jsonify(web_response)
