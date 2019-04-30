@@ -20,16 +20,6 @@ annotation_file_name = username+'_'+str(now)[:10]+'_'+str(now)[11:13]+str(now)[1
 app = Flask(__name__)
 # CORS(app) # needed for cross-domain requests, allow everything by default
 # model_api = get_model_api()
-def avg_embedding(sentence):
-    input_vecs = list([])
-    for word in sentence.split():
-        if word in glove_dict:
-            input_vecs.append(glove_dict[word])
-        else:
-            input_vecs.append(np.ones(300)*0.1)
-    input_vecs_array = np.array(input_vecs)
-    sentence_embedding = np.mean(input_vecs_array, dim=0)
-    return sentence_embedding
 
 
 class Annotation():
@@ -106,12 +96,18 @@ def fetch_first_example():
     web_response['facts_embedding'] = [avg_embedding(fact_text) for fact_text in facts_text]
     web_response['answer_choice_id'] = str(answer_choice_id)
 
+    print('debug!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    print(facts_text)
+    print(fatcs_text[0])
+    print(facts_text[0].split())
+    print(len(web_response['facts_embedding']))
 
-    response0 = jsonify(web_response)
-    response1 = jsonify(glove_dict)
+
+    # response0 = jsonify(web_response)
+    # response1 = jsonify(glove_dict)
     # print(web_response)
 
-    return (response0, response1)
+    return response0
 
 
 @app.route("/annotation_and_next_example", methods=['POST'])
@@ -160,6 +156,12 @@ def annotation_and_next_example():
     web_response['facts_text'] = facts_text
     web_response['facts_embedding'] = [avg_embedding(fact_text) for fact_text in facts_text]
     web_response['answer_choice_id'] = str(answer_choice_id)
+
+    print('debug!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    print(facts_text)
+    print(fatcs_text[0])
+    print(facts_text[0].split())
+    print(len(web_response['facts_embedding']))
     
     response = jsonify(web_response)
     return response
@@ -224,13 +226,13 @@ def annotation_and_next_example():
  
 if (__name__ == '__main__'):
 
-    dict_path = "glove.840B.300d.pickle"
-    with open(dict_path, 'rb') as embed_file:
-        glove = pickle.load(embed_file)
+    # dict_path = "glove.840B.300d.pickle"
+    # with open(dict_path, 'rb') as embed_file:
+    #     glove = pickle.load(embed_file)
 
-    global glove_dict
-    for key,val in glove.items():
-        glove_dict[key] = val.tolist()
+    # global glove_dict
+    # for key,val in glove.items():
+    #     glove_dict[key] = val.tolist()
     
     global trainer
     trainer = DyMemNet_Trainer(load_model=True)

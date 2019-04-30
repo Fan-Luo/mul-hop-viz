@@ -29,8 +29,8 @@ print('threads after set:',torch.get_num_threads())
 
 #dict_path = "/work/zhengzhongliang/DyMemNet_2019/GloveDict/glove.840B.300d.pickle"
 
-# dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
-dict_path = "glove.840B.300d.pickle"
+dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
+#dict_path = "glove.840B.300d.pickle"
 # dict_path = "/lhome/zhengzhongliang/CLU_Projects/glove.840B.300d.pickle"
 
 with open(dict_path, 'rb') as input_file:
@@ -207,13 +207,13 @@ class Classifier(nn.Module):
         selection_loss_torch_list = list([])
         selection_loss_python_list = list([])
         for annotated_sen_ in annotated_sen_permu:
-          selection_loss =0 
-          selection_loss+=self.criterion(outputs.view(1,4), torch.tensor(targets).view(1))
+            selection_loss =0 
+            selection_loss+=self.criterion(outputs.view(1,4), torch.tensor(targets).view(1))
           
-          for hop in np.arange(min(len(annotated_sen_), 4)):
-              selection_loss+=self.criterion(att_score[hop].view(1,11+len(annotated_sen[1])), torch.tensor(annotated_sen_[hop]).view(1))
-          selection_loss_torch_list.append(selection_loss)
-          selection_loss_python_list.append(selection_loss.detach().item())
+            for hop in np.arange(min(len(annotated_sen_), 4)):
+                selection_loss+=self.criterion(att_score[hop].view(1,11+len(annotated_sen[1])), torch.tensor(annotated_sen_[hop]).view(1))
+            selection_loss_torch_list.append(selection_loss)
+            selection_loss_python_list.append(selection_loss.detach().item())
         
         print('length of att score:', len(att_score))
         print('length of att score 0:', len(att_score[0]))
@@ -389,6 +389,16 @@ class DyMemNet_Trainer():
         #model_results[epoch, 2] = dev_loss/len(self.instances_dev)
         #model_results[epoch, 3] = correct_count / 1.0 / len(self.instances_dev)
 
+def avg_embedding(sentence):
+    input_vecs = list([])
+    for word in sentence.split():
+        if word in glove_dict:
+            input_vecs.append(glove_dict[word])
+        else:
+            input_vecs.append(np.ones(300)*0.1)
+    input_vecs_array = np.array(input_vecs)
+    sentence_embedding = np.mean(input_vecs_array, dim=0)
+    return sentence_embedding
 
 
 
