@@ -93,21 +93,18 @@ def fetch_first_example():
     web_response['question_text'] = " ".join(instance.question_text)
     web_response['choice_text'] = instance.choices_text
     web_response['facts_text'] = facts_text
-    web_response['facts_embedding'] = [avg_embedding(fact_text) for fact_text in facts_text]
+    web_response['facts_embedding'] = [avg_embedding(fact_text).tolist() for fact_text in facts_text]
     web_response['answer_choice_id'] = str(answer_choice_id)
 
     print('debug!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    print(facts_text)
-    print(fatcs_text[0])
-    print(facts_text[0].split())
     print(len(web_response['facts_embedding']))
 
-
+    response = jsonify(web_response)
     # response0 = jsonify(web_response)
     # response1 = jsonify(glove_dict)
     # print(web_response)
 
-    return response0
+    return response
 
 
 @app.route("/annotation_and_next_example", methods=['POST'])
@@ -154,13 +151,10 @@ def annotation_and_next_example():
     web_response['question_text'] = " ".join(instance.question_text)
     web_response['choice_text'] = instance.choices_text
     web_response['facts_text'] = facts_text
-    web_response['facts_embedding'] = [avg_embedding(fact_text) for fact_text in facts_text]
+    web_response['facts_embedding'] = [avg_embedding(fact_text).tolist() for fact_text in facts_text]
     web_response['answer_choice_id'] = str(answer_choice_id)
 
     print('debug!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    print(facts_text)
-    print(fatcs_text[0])
-    print(facts_text[0].split())
     print(len(web_response['facts_embedding']))
     
     response = jsonify(web_response)

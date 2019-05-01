@@ -29,8 +29,8 @@ print('threads after set:',torch.get_num_threads())
 
 #dict_path = "/work/zhengzhongliang/DyMemNet_2019/GloveDict/glove.840B.300d.pickle"
 
-dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
-#dict_path = "glove.840B.300d.pickle"
+# dict_path = "/Users/zhengzhongliang/PycharmProjects/DyMemNet/Glove_Embedding/glove.840B.300d.pickle"
+dict_path = "glove.840B.300d.pickle"
 # dict_path = "/lhome/zhengzhongliang/CLU_Projects/glove.840B.300d.pickle"
 
 with open(dict_path, 'rb') as input_file:
@@ -397,7 +397,7 @@ def avg_embedding(sentence):
         else:
             input_vecs.append(np.ones(300)*0.1)
     input_vecs_array = np.array(input_vecs)
-    sentence_embedding = np.mean(input_vecs_array, dim=0)
+    sentence_embedding = np.mean(input_vecs_array, axis=0)
     return sentence_embedding
 
 
