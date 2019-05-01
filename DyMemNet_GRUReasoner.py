@@ -331,7 +331,7 @@ class DyMemNet_Trainer():
         self.optim.zero_grad()
 
         facts_text = list([])
-        facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
+        facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-min(50, len(instance.knowledge_fact_text)):]])
         facts_text.append(" ".join(instance.science_fact_text))
 
         output, att_scores = self.classifier(instance.question_text, instance.choices_text[choice_id], instance.science_fact_text, instance.knowledge_fact_text, user_annotations)
