@@ -84,7 +84,7 @@ def fetch_first_example():
     print('DEBUG correct choice text:', instance.choices_text[answer_choice_id])
     
     facts_text = list([])
-    facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
+    facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-min(50, len(instance.knowledge_fact_text)):]])
     facts_text.append(" ".join(instance.science_fact_text))
     
     web_response = {}
@@ -142,7 +142,7 @@ def annotation_and_next_example():
     print('DEBUG choice text:', instance.choices_text[answer_choice_id])
 
     facts_text = list([])
-    facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-10:]])
+    facts_text.extend([" ".join(single_fact) for single_fact in instance.knowledge_fact_text[-min(50, len(instance.knowledge_fact_text)):]])
     facts_text.append(" ".join(instance.science_fact_text))
     
     web_response = {}
